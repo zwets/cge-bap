@@ -12,7 +12,7 @@ URL = 'https://github.com/zwets/cge-bap'
 EMAIL = 'io@zwets.it'
 AUTHOR = 'Marco van Zwetselaar'
 PLATFORMS = [ 'Linux' ]
-REQUIRES_PYTHON = '>=3.8.0'
+REQUIRES_PYTHON = '>=3.9.0'
 REQUIRED = ['picoline' ]
 EXTRAS = { }
 
