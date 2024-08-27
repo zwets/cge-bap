@@ -9,9 +9,8 @@
 # Load base Docker image
 # ----------------------------------------------------------------------
 
-# Use miniconda3 with Python 3.11 until Flye supports 3.12
-# See: https://github.com/mikolmogorov/Flye/issues/669
-FROM continuumio/miniconda3:23.10.0-1
+# Use miniconda with Python 3.12
+FROM continuumio/miniconda3:24.7.1-0
 
 
 # System dependencies
