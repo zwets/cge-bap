@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Indexes the CGE databases in directory "$1".
 # Works for both the test and real databases.
 #
 
-LC_ALL="C"
+export LC_ALL="C"
+set -euo pipefail
 
 # Check usage and set BASE_DIR to full path of target directory
 [ $# -eq 1 ] && [ -d "$1" ] && BASE_DIR="$(realpath -e "$1" 2>/dev/null)" || {
@@ -24,7 +25,7 @@ PATH="$(realpath -e "$(dirname "$0")"):$PATH"
 # Index the plain vanilla finders
 for D in resfinder disinfinder virulencefinder plasmidfinder pmlst choleraefinder; do
     printf 'Indexing %s ... ' $D
-    cd "$BASE_DIR/$D"
+    cd "$BASE_DIR/$D" 2>/dev/null || { printf 'NOT FOUND\n'; continue; }
     grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
         any_newer "$N.fsa" "$N.seq.b" &&
 	kma_index -i "$N.fsa" -o "$N" 2>&1 | grep -v '^#' || 
