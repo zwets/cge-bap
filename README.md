@@ -169,17 +169,8 @@ Index the test databases
 
 Run on test data against the test databases:
 
-    # Test run BAP on an assembled sample genome
-    test/test-01-fa.sh
-
-    # Run BAP on a sample of paired-end reads
-    test/test-02-fq.sh
-
-    # Compute metrics over FASTA and FASTQ
-    test/test-03-metrics.sh
-
-    # Run BAP including assembly
-    test/test-04-asm.sh
+    # Run tests
+    cd test && ./run-tests.sh
 
 If the tests above all end with with `[OK]`, you are good to go.  (Note
 the test reads are just a small subset of a normal run, so the run output

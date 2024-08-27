@@ -2,6 +2,8 @@
 
 LC_ALL="C"
 
+export BAP_IMAGE="${BAP_IMAGE:-cge-bap:latest}"
+
 run_bap() {
 
     "$(realpath -e "$BASE_DIR/../bin/BAP")" "$@" \
