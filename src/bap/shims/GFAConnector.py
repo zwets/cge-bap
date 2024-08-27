@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.SKESA - service shim to the SKESA backend
+# bap.shims.GFAConnector - service shim to the GFAConnector backend
 #
 
 import os, logging
@@ -10,24 +10,25 @@ from .base import ServiceExecution, UserException
 from .versions import BACKEND_VERSIONS
 
 # Our service name and current backend version
-SERVICE, VERSION = "SKESA", BACKEND_VERSIONS['skesa']
+SERVICE, VERSION = "GFAConnector", BACKEND_VERSIONS['skesa']
 
-# SKESA resource parameters: cpu, memory, disk, run time reqs
+# Resource parameters: cpu, memory, disk, run time reqs
 #MAX_CPU = -1 # all
 #MAX_MEM = 12 # all
-MAX_TIM = 0  # unlimited
+MAX_TIM = 30 * 60
 
 # Output file ex work dir
-CONTIGS_OUT = 'contigs.fna'
+GFA_OUT = 'contigs.gfa'
+CSV_OUT = 'graph.csv'
 
 # The Service class
-class SKESAShim:
-    '''Service shim that executes the SKESA backend.'''
+class GFAConnectorShim:
+    '''Service shim that executes the gfa_connector backend.'''
 
     def execute(self, sid, xid, blackboard, scheduler):
         '''Invoked by the executor.  Creates, starts and returns the Task.'''
 
-        execution = SKESAExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
+        execution = GFAConnectorExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
 
         # Max out the CPU and MEM but within reasonability
         MAX_CPU = min(scheduler.max_cpu, 12)
@@ -35,17 +36,19 @@ class SKESAShim:
 
         # Get the execution parameters from the blackboard
         try:
-            if len(execution.get_illufq_paths()) != 2:
-                raise UserException("SKESA backend only handles paired-end reads")
+            reads = execution.get_illufq_paths()
+            if len(reads) != 2:
+                raise UserException("GFAConnector backend only handles Illumina paired-end reads")
 
             params = [
                 '--cores', MAX_CPU,
-                '--memory', MAX_MEM,
-                '--reads', ','.join(execution.get_illufq_paths()),
-                '--contigs_out', CONTIGS_OUT
+                '--reads', ','.join(map(os.path.abspath, reads)),
+                '--contigs', os.path.abspath(execution.get_contigs_path()),
+                '--gfa', GFA_OUT,
+                '--csv', CSV_OUT   # optional
             ]
 
-            job_spec = JobSpec('skesa', params, MAX_CPU, MAX_MEM, MAX_TIM)
+            job_spec = JobSpec('gfa_connector', params, MAX_CPU, MAX_MEM, MAX_TIM)
             execution.store_job_spec(job_spec.as_dict())
             execution.start(job_spec)
 
@@ -61,24 +64,27 @@ class SKESAShim:
         return execution
 
 # Single execution of the service
-class SKESAExecution(ServiceExecution):
+class GFAConnectorExecution(ServiceExecution):
     '''A single execution of the service, returned by execute().'''
 
     _job = None
 
     def start(self, job_spec):
         if self.state == Task.State.STARTED:
-            self._job = self._scheduler.schedule_job('skesa', job_spec, 'SKESA')
+            self._job = self._scheduler.schedule_job('gfa-connector', job_spec, 'GFAConnector')
 
     def collect_output(self, job):
         '''Collect the job output and put on blackboard.
            This method is called by super().report() once job is done.'''
 
-        contigs_file = job.file_path(CONTIGS_OUT)
+        gfa_file = job.file_path(GFA_OUT)
+        csv_file = job.file_path(CSV_OUT)
 
-        if os.path.isfile(contigs_file):
-            self.store_results({ 'contigs_file': contigs_file })
-            self._blackboard.put_assembled_contigs_path(contigs_file)
+        if os.path.isfile(gfa_file):
+            self._blackboard.put_graph_path(gfa_file)
+            res = dict({'gfa_file': gfa_file})
+            if os.path.isfile(csv_file): res['csv_file'] = csv_file
+            self.store_results(res)
         else:
-            self.fail("backend job produced no output, check: %s", job.file_path(""))
+            self.fail("gfa_connector job produced no graph, check: %s", job.file_path(""))
 

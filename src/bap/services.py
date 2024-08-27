@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.services - Defines the services used by the BAP workflow
+# bap.services - Defines the services used by the BAP workflow
 #
 #   This module defines the SERVICES dict that maps each Service.* enum
 #   defined in .workflow to a class (called a 'shim') that implements

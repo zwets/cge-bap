@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.KmerFinder - service shim to the KmerFinder backend
+# bap.shims.KmerFinder - service shim to the KmerFinder backend
 #
 
 import os, logging

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.CholeraeFinder - service shim to the CholeraeFinder
+# bap.shims.CholeraeFinder - service shim to the CholeraeFinder
 #
 
 import os, json, logging, tempfile

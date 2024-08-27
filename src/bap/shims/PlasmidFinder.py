@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.VirulenceFinder - service shim to the VirulenceFinder backend
+# bap.shims.PlasmidFinder - service shim to the PlasmidFinder backend
 #
 
 import os, json, logging, tempfile
@@ -10,7 +10,7 @@ from .base import ServiceExecution, UserException
 from .versions import BACKEND_VERSIONS
 
 # Our service name and current backend version
-SERVICE, VERSION = "VirulenceFinder", BACKEND_VERSIONS['virulencefinder']
+SERVICE, VERSION = "PlasmidFinder", BACKEND_VERSIONS['plasmidfinder']
 
 # Backend resource parameters: cpu, memory, disk, run time
 MAX_CPU = 1
@@ -18,40 +18,29 @@ MAX_MEM = 1
 MAX_TIM = 10 * 60
 
 
-class VirulenceFinderShim:
+class PlasmidFinderShim:
     '''Service shim that executes the backend.'''
 
     def execute(self, sid, xid, blackboard, scheduler):
         '''Invoked by the executor.  Creates, starts and returns the Task.'''
 
-        execution = VirulenceFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
+        execution = PlasmidFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
 
         # Get the execution parameters from the blackboard
         try:
-            db_path = execution.get_db_path('virulencefinder')
+            db_path = execution.get_db_path('plasmidfinder')
+            min_ident = execution.get_user_input('pf_i')
+            min_cov = execution.get_user_input('pf_c')
+            search_list = list(filter(None, execution.get_user_input('pf_s', '').split(',')))
+            # Note: errors out if only Nanopore reads available (which we can't handle yet)
+            inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
+
             params = [
                 '-q',
                 '-p', db_path,
-#               '-db_vir_kma', db_path,
-                '-t', execution.get_user_input('vf_i'),
-                '-l', execution.get_user_input('vf_c'),
-                '--overlap', execution.get_user_input('vf_o'),
-                '-j', 'virulencefinder.json',
-                '-o', '.' ]
-
-            # Append files, backend has different args for fq and fa
-            illufqs = execution.get_illufq_paths(list())
-            if illufqs:
-                params.append('-ifq')
-                params.extend(illufqs)
-            elif execution.get_contigs_path(""):
-                params.extend(['-ifa', os.path.abspath(execution.get_contigs_path())])
-            elif execution.get_nanofq_path(""):
-                params.extend(['--nanopore', '-ifq', execution.get_nanofq_path()])
-            else: # expect the unexpected
-                raise UserException("no input data to analyse")
-
-            search_list = list(filter(None, execution.get_user_input('vf_s', '').split(',')))
+                '-t', min_ident,
+                '-l', min_cov,
+                '-i' ] + inputs
             if search_list:
                 params.extend(['-d', ','.join(search_list)])
 
@@ -69,28 +58,28 @@ class VirulenceFinderShim:
         return execution
 
 
-class VirulenceFinderExecution(ServiceExecution):
+class PlasmidFinderExecution(ServiceExecution):
     '''A single execution of the service, returned by the shim's execute().'''
 
-    _service_name = 'virulencefinder'
+    _service_name = 'plasmidfinder'
     _search_dict = None
     _tmp_dir = None
     _job = None
 
     # Start the execution on the scheduler
     def start(self, db_path, params, search_list):
-        '''Start a job for virulencefinder, with the given parameters.'''
+        '''Start a job for plasmidfinder, with the given parameters.'''
 
         cfg_dict = parse_config(db_path)
         self._search_dict = find_databases(cfg_dict, search_list)
 
-        job_spec = JobSpec('virulencefinder', params, MAX_CPU, MAX_MEM, MAX_TIM)
+        job_spec = JobSpec('plasmidfinder.py', params, MAX_CPU, MAX_MEM, MAX_TIM)
         self.store_job_spec(job_spec.as_dict())
 
         if self.state == Task.State.STARTED:
             self._tmp_dir = tempfile.TemporaryDirectory()
             job_spec.args.extend(['--tmp_dir', self._tmp_dir.name])
-            self._job = self._scheduler.schedule_job('virulencefinder', job_spec, 'VirulenceFinder')
+            self._job = self._scheduler.schedule_job('plasmidfinder', job_spec, 'PlasmidFinder')
 
     # Collect the output produced by the backend service and store on blackboard
     def collect_output(self, job):
@@ -101,45 +90,83 @@ class VirulenceFinderExecution(ServiceExecution):
         self._tmp_dir.cleanup()
         self._tmp_dir = None
 
-        res_out = dict()
-
-        out_file = job.file_path('virulencefinder.json')
+        # Load the JSON and obtain the 'results' element.
+        out_file = job.file_path('data.json')
         try:
             with open(out_file, 'r') as f: json_in = json.load(f)
-        except Exception as e:
-            logging.exception(e)
+        except:
             self.fail('failed to open or load JSON from file: %s' % out_file)
             return
 
-        # VirulenceFinder since 3.0 has standardised JSON with these elements
-        # that it shares with ResFinder:
-        # - seq_regions (loci with virulence-associated genes or mutations)
-        # - seq_variations (mutations keying into seq_regions)
-        # - phenotypes (virulence, keying into above)
+        # JSON can be string "No hits found" we turn into an empty dict, or otherwise
+        # a dict whose keys are the group names (column 2 in the config), with as value
+        # a dict whose keys are the db names (col 1 in the config), with as value
+        # a dict whose keys are the hit_ids (QUERY_CONTIG:QRY_POS..QRY_POS:TARGET_CTG:SCORE"), with as value
+        # a dict having the fields we need
+        # ... but we deconvolve all this for uniformity
 
-        # We include these but change them from objects to lists, so this:
-        #   'seq_regions' : { 'XYZ': { ..., 'key' : 'XYZ', ...
-        # becomes:
-        #   'seq_regions' : [ { ..., 'key' : 'XYZ', ... }, ...]
-        # This is cleaner design (they have list semantics, not object), and
-        # avoids issues downstream with keys containing JSON delimiters.
+        res_in = json_in.get(self._service_name, {}).get('results')
+        if res_in is None:
+            self.fail('no %s/results element in data.json' % self._service_name)
+            return
 
-        for k, v in json_in.items():
-            if k in ['seq_regions','seq_variations','phenotypes']:
-                res_out[k] = [ o for o in v.values() ]
-            else:
-                res_out[k] = v
+        if type(res_in) is not dict: # fix backend's "No hits found" to be {}
+            res_in = dict()
 
-        # Helpers to retrieve gene names g for regions r causing phenotype p
-        r2g = lambda r: json_in.get('seq_regions',{}).get(r,{}).get('name')
-        p2gs = lambda p: filter(None, map(r2g, p.get('seq_regions', [])))
+        # Make res_out a list of result objects, one per database that a search was
+        # requested for (even if no results).  So we iterate over the search_dict
+        # and pull results from res_in, rather than vice versa.
+        # Also we change the group and db names from key to values.
 
-        # Store the virulence genes for the detected phenotypes for the summary output
-        # Note that a lot more information is present, including PMIDs and notes
-        for p in res_out.get('phenotypes', []):
-            for g in p2gs(p): self._blackboard.add_detected_virulence_gene(g)
+        res_out = list()
+ 
+        # Iterate over the groups and their databases search was requested for
+        for grp, dbs in self._search_dict.items():
 
-        # Store on the blackboard
+            dbs_in = res_in.get(grp, dict())
+            dbs_in = dbs_in if type(dbs_in) is dict else dict()
+            dbs_out = list()
+
+            for db in dbs:
+
+                hits_in = dbs_in.get(db, dict())
+                hits_in = hits_in if type(hits_in) is dict else dict()
+                hits_out = list()
+
+                for hit in hits_in.values():
+
+                    plasmid = hit['plasmid']
+                    self._blackboard.add_detected_plasmid(plasmid)
+
+                    h_out = dict({
+                        'plasmid': plasmid,
+                        # common
+                        'hit_id':     hit['hit_id'],
+                        'group':      grp,
+                        'database':   db,
+                        'qry_ctg':    hit['contig_name'],
+                        'qry_pos':    hit['positions_in_contig'],
+                        'tgt_acc':    hit['accession'],
+                        'tgt_len':    hit['template_length'],
+                        'tgt_pos':    hit['position_in_ref'],
+                        'hsp_len':    hit['HSP_length'],
+                        'pct_cov':    hit['coverage'],
+                        'pct_ident':  hit['identity'],
+                        'quality':    hit['coverage'] * hit['identity'] / 100.0,
+                        'note':       hit['note']
+                        })
+
+                    # Append the hit to the output list
+                    hits_out.append(h_out)
+     
+                # Sort the hit list by descending goodness, and store under key db in dbs_out
+                hits_out.sort(key=lambda l: l['quality'], reverse=True)
+                dbs_out.append({ 'database': db, 'hits': hits_out })
+
+            # Put the dbs_out object under key grp in the res_out object
+            res_out.append({ 'group': grp, 'searches': dbs_out })
+
+        # Store the results on the blackboard
         self.store_results(res_out)
 
 

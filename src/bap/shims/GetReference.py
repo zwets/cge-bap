@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.GetReference - service shim to the GetReference backend
+# bap.shims.GetReference - service shim to the GetReference backend
 #
 
 import os, logging, functools

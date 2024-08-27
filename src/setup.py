@@ -1,15 +1,15 @@
 from setuptools import find_packages, setup
 
-VERSION = '3.0.0'  # sensible default, but get from the kcri.bap module
-with open("kcri/bap/__init__.py", 'r') as f:
+VERSION = '3.0.0'  # sensible default, but get from the bap module
+with open("bap/__init__.py", 'r') as f:
     for l in f:
         if l.startswith('__version__'):
              VERSION = l.split('=')[1].strip().strip('"')
 
-NAME = 'kcribap'
-DESCRIPTION = 'KCRI CGE Bacterial Analysis Pipeline'
-URL = 'https://github.com/zwets/kcri-cge-bap'
-EMAIL = 'zwets@kcri.ac.tz'
+NAME = 'bap'
+DESCRIPTION = 'CGE Bacterial Analysis Pipeline'
+URL = 'https://github.com/zwets/cge-bap'
+EMAIL = 'io@zwets.it'
 AUTHOR = 'Marco van Zwetselaar'
 PLATFORMS = [ 'Linux' ]
 REQUIRES_PYTHON = '>=3.8.0'
@@ -29,7 +29,7 @@ setup(
     python_requires = REQUIRES_PYTHON,
     url = URL,
     packages = find_packages(exclude=["tests"]),
-    entry_points={ 'console_scripts': [ 'BAP = kcri.bap.BAP:main' ] },
+    entry_points={ 'console_scripts': [ 'BAP = bap.BAP:main' ] },
     install_requires = REQUIRED,
     extras_require = EXTRAS,
     include_package_data = True,

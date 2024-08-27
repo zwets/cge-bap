@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.base - base functionality across all service shims
+# bap.shims.base - base functionality across all service shims
 #
 #   This module defines ServiceExecution and UnimplementedService.
 #

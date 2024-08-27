@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.ContigsMetrics - service shim to the uf-stats backend
+# bap.shims.ContigsMetrics - service shim to the uf-stats backend
 #
 
 import os, logging

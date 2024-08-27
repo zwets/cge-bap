@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# BAP - run the BAP in the kcri-cge-bap container.
+# BAP - run the BAP in the cge-bap container.
 #
 #   This is a shorthand for ./bap-container-run BAP ..., but with the
 #   added convenience of working around the constraint that input files

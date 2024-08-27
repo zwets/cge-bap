@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.MLSTFinder - service shim to the CGE MLST backend
+# bap.shims.MLSTFinder - service shim to the CGE MLST backend
 #
 
 import os, tempfile, json, logging

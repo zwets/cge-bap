@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.cgMLSTFinder - service shim to the cgMLSTFinder backend
+# bap.shims.cgMLSTFinder - service shim to the cgMLSTFinder backend
 #
 
 import os, json, tempfile, logging

@@ -1,11 +1,12 @@
-# KCRI CGE Bacterial Analysis Pipeline (BAP)
+# CGE Bacterial Analysis Pipeline (BAP)
 
 ## Introduction
 
-The KCRI CGE Bacterial Analysis Pipeline (BAP) is the standard analysis
-pipeline for bacterial genomics at Kilimanjaro Clinical Research Institute
-(KCRI).  The BAP is developed in collaboration with the Centre for Genomic
-Epidemiology (CGE) at the Technical University of Danmark (DTU).
+The CGE Bacterial Analysis Pipeline (BAP) is an analysis pipeline for
+bacterial genomics, built around off-line versions of the
+[CGE services](https://genomicepidemiology.org/service) maintained by
+the Centre for Genomic Epidemiology (CGE) at the Technical University
+of Denmark (DTU).
 
 The BAP orchestrates a standard workflow that processes sequencing reads
 and/or contigs, and produces the following:
@@ -138,19 +139,19 @@ Test that Docker is installed
 
 Clone and enter this repository
 
-    git clone https://github.com/kcri-tz/kcri-cge-bap.git
-    cd kcri-cge-bap
+    git clone https://github.com/zwets/cge-bap.git
+    cd cge-bap
 
 Download the backend services
 
     ext/update-backends.sh
 
-Build the `kcri-cge-bap` Docker image
+Build the `cge-bap` Docker image
 
     ./build.sh
 
     # Or manually do what build.sh does:
-    #docker build -t kcri-cge-bap "." | tee build.log
+    #docker build -t cge-bap "." | tee build.log
 
 Smoke test the container
 
@@ -196,7 +197,7 @@ come with this repository.  In this step we install the real databases.
 Pick a location for the databases:
 
     # Remember to set this BAP_DB_DIR in bin/bap-container-run
-    BAP_DB_DIR=/data/genomics/cge/db   # KCRI path, replace by yours
+    BAP_DB_DIR=/data/cge/db   # Path on my machine, replace by yours
 
 Clone the CGE database repositories:
 
@@ -261,27 +262,29 @@ Always **run tests after upgrading**:
 
 ### History
 
-The KCRI BAP evolved from the CGE BAP (citation below), the original code of
-which is at <https://bitbucket.org/genomicepidemiology/cge-tools-docker.git>.
-The KCRI version initially lived on the `kcri` branch in that repository, but
-moved to its own project after development of the BAP master stopped.
+The CGE BAP is currently maintained thanks to funding from the Fleming Fund
+SeqAfrica Project, a UK Aid investment to tackle AMR in LMICs.
 
-The KCRI BAP was developed to run on modest hardware, independent of an HPC
-batch submission system.  It ran at KCRI for several years on a cluster of
-four 8 core, 32GB Dell Precision M4700 laptop workstations.
+The development of the CGE BAP (then called KCRI CGE BAP) previously took
+place at the Kilimanjaro Clinical Research Institute, funded by Danish aid
+through DANIDA Fellowship Centre grant DFC12-007DTU.
 
-As the BAP evolved, its workflow logic became unwieldy and was factored out
-into a simple generic mechanism.  That code is now in <https://github.com/zwets/picoline>
-whereas all BAP-specifics (the workflow definitions and service shims) are
-here in the `src/kcri/bap` package.
+Prior to that, the original CGE BAP (citation below, source code at
+<https://bitbucket.org/genomicepidemiology/cge-tools-docker.git>) was
+conceived and developed at the Centre for Genomic Epidemiology at DTU.
 
-The next generation BAP "2.0" is under development at CGE, and is based on
-the NextFlow workflow control engine.  We envisage migrating KCRI BAP to that
-foundation once it is operational.
+The BAP was developed to run on modest hardware, including laptops that
+could be used in the field.  It will still run comfortable on an 8-core,
+32GB machine.
+
+As the BAP evolved, its workflow logic became unwieldy and was factored into
+a simple generic mechanism (now at <https://github.com/zwets/picoline>),
+and BAP-specifics (workflow definitions and service shims), here in the
+`src/bap` package.
 
 ### Citation
 
-For publications please cite the URL <https://github.com/kcri-tz/kcri-cge-bap>
+For publications please cite the URL <https://github.com/zwets/cge-bap>
 of this repository, and the paper on the original concept:
 
 _A Bacterial Analysis Platform: An Integrated System for Analysing Bacterial
@@ -296,6 +299,7 @@ Refer to the individual tools invoked by the BAP for their preferred citations.
 
 Copyright 2016-2019 Center for Genomic Epidemiology, Technical University of Denmark  
 Copyright 2018-2022 Kilimanjaro Clinical Research Institute, Tanzania  
+Copyright 2023-2024 Marco van Zwetselaar <io@zwets.it>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

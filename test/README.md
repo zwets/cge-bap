@@ -1,4 +1,4 @@
-# KCRI CGE BAP - Test databases and scripts
+# CGE BAP - Test databases and scripts
 
 Test scripts in this directory:
 

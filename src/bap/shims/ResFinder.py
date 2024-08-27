@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.DisinFinder - service shim to the DisinFinder backend
+# bap.shims.ResFinder - service shim to the ResFinder backend
 #
 
 import os, json, logging
@@ -9,8 +9,8 @@ from pico.jobcontrol.job import JobSpec, Job
 from .base import ServiceExecution, UserException
 from .versions import BACKEND_VERSIONS
 
-# Our service name and current backend version (note: is resfinder)
-SERVICE, VERSION = "DisinFinder", BACKEND_VERSIONS['resfinder']
+# Our service name and current backend version
+SERVICE, VERSION = "ResFinder", BACKEND_VERSIONS['resfinder']
 
 # Backend resource parameters: cpu, memory, disk, run time reqs
 MAX_CPU = 1
@@ -18,29 +18,24 @@ MAX_MEM = 1
 MAX_TIM = 10 * 60
 
 
-class DisinFinderShim:
+class ResFinderShim:
     '''Service shim that executes the backend.'''
 
     def execute(self, sid, xid, blackboard, scheduler):
         '''Invoked by the executor.  Creates, starts and returns the Task.'''
 
-        execution = DisinFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
+        execution = ResFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
 
-        # From here throwing is caught and FAILs the execution
+        # Get the execution parameters from the blackboard
         try:
-            db_path = execution.get_db_path('disinfinder')
+            db_path = execution.get_db_path('resfinder')
             params = [
-                '--disinfectant',
-                '--db_path_disinf', db_path,
-                '--db_path_res', execution.get_db_path('resfinder'), # required at all times
-                # Set the thresholds from the RF parameters; we have no params specific to DF.
-                # We could be fancy and offer separate settings, but then if we migrate to a
-                # single Resistance 'all-in-one', we can't pass them to ResFinder separately.
-                # No big deal; we point out in BAP help that these are for both Res and Disin.
+                '--acquired',
+                '--db_path_res', db_path,
                 '-t', execution.get_user_input('rf_i'),
                 '-l', execution.get_user_input('rf_c'),
                 '--acq_overlap', execution.get_user_input('rf_o'),
-                '-j', 'disinfinder.json',
+                '-j', 'resfinder.json',
                 '-o', '.' ]
 
             # Append files, backend has different args for fq and fa
@@ -52,12 +47,12 @@ class DisinFinderShim:
                 params.extend(['--inputfasta', os.path.abspath(execution.get_contigs_path())])
             elif execution.get_nanofq_path(""):
                 params.extend(['--nanopore', '--inputfastq', execution.get_nanofq_path()])
-            else: # the end is neigh
+            else: # expect the unexpected
                 raise UserException("no input data to analyse")
 
             job_spec = JobSpec('resfinder', params, MAX_CPU, MAX_MEM, MAX_TIM)
             execution.store_job_spec(job_spec.as_dict())
-            execution.start(job_spec, 'DisinFinder')
+            execution.start(job_spec, 'ResFinder')
 
         # Failing inputs will throw UserException
         except UserException as e:
@@ -71,14 +66,14 @@ class DisinFinderShim:
         return execution
 
 
-class DisinFinderExecution(ServiceExecution):
+class ResFinderExecution(ServiceExecution):
     '''A single execution of the service, returned by the shim's execute().'''
 
     _job = None
 
     def start(self, job_spec, work_dir):
         if self.state == Task.State.STARTED:
-            self._job = self._scheduler.schedule_job('disinfinder', job_spec, work_dir)
+            self._job = self._scheduler.schedule_job('resfinder', job_spec, work_dir)
 
     # Parse the output produced by the backend service, return list of hits
     def collect_output(self, job):
@@ -87,7 +82,7 @@ class DisinFinderExecution(ServiceExecution):
 
         res_out = dict()
 
-        out_file = job.file_path('disinfinder.json')
+        out_file = job.file_path('resfinder.json')
         try:
             with open(out_file, 'r') as f: json_in = json.load(f)
         except Exception as e:
@@ -113,15 +108,17 @@ class DisinFinderExecution(ServiceExecution):
             else:
                 res_out[k] = v
 
-        # Helpers to retrieve genes names g for regions r causing phenotype p
+        # Helpers to retrieve gene names g for regions r causing phenotype p
         r2g = lambda r: json_in.get('seq_regions',{}).get(r,{}).get('name')
         p2gs = lambda p: filter(None, map(r2g, p.get('seq_regions', [])))
 
-        # Store the resistant phenotypes and causative genes for summary
+        # Store the resistant phenotypes and causative regions for the summary output
+        # Note that a lot more information is present, including PMIDs and notes
         for p in filter(lambda d: d.get('amr_resistant', False), res_out.get('phenotypes', [])):
-            for g in p2gs(p): self._blackboard.add_dis_gene(g)
-            self._blackboard.add_dis_resistance(p.get('amr_resistance','?unspecified?'))
+            for g in p2gs(p): self._blackboard.add_amr_gene(g)
+            for c in p.get('amr_classes',[]): self._blackboard.add_amr_class(c)
+            self._blackboard.add_amr_antibiotic(p.get('amr_resistance','?unspecified?'))
 
-        # Store the results on the blackboard
+        # Store on the blackboard
         self.store_results(res_out)
 

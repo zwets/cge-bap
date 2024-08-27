@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.spaType - service shim to spa-type
+# bap.shims.spaType - service shim to spa-type
 #
 
 import os, json, logging, tempfile

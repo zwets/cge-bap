@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.pMLSTShim - service shim to the pMLST backend
+# bap.shims.pMLSTShim - service shim to the pMLST backend
 #
 
 import os, tempfile, json, logging

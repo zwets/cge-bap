@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.workflow - Defines the BAP workflow logic.
+# bap.workflow - Defines the BAP workflow logic.
 #
 #   This module defines the DEPENDENCIES dict that captures the workflow logic
 #   of the current version of the BAP.  It defines this in term of the primitives
@@ -11,7 +11,7 @@
 #
 #       # Depends on picoline, which depends on psutil, so either install
 #       # those, or point the PYTHONPATH there, before running this:
-#       python3 -m kcri.bap.workflow --help
+#       python3 -m bap.workflow --help
 #
 #   Sibling module .services defines the mapping from the Services enum defined
 #   below to the shims that wrap the actual backends.

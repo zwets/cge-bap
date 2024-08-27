@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.ReadsMetrics - service shim to the fastq-stats backend
+# bap.shims.ReadsMetrics - service shim to the fastq-stats backend
 #
 
 import os, logging

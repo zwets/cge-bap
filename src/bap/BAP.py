@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# BAP.py - main for the KCRI CGE Bacterial Analysis Pipeline
+# BAP.py - main for the CGE Bacterial Analysis Pipeline
 #
 
 import sys, os, argparse, gzip, io, json, re
@@ -14,7 +14,7 @@ from .workflow import UserTargets, Services, Params
 from . import __version__
 
 # Global variables and defaults
-SERVICE, VERSION = "KCRI CGE BAP", __version__
+SERVICE, VERSION = "CGE BAP", __version__
 
 # Exit with error message and non-zero code
 def err_exit(msg, *args):
@@ -58,7 +58,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         description="""\
-The KCRI CGE Bacterial Analysis Pipeline (BAP) performs a configurable
+The CGE Bacterial Analysis Pipeline (BAP) performs a configurable
 smorgasbord of analyses on the sequencer reads and/or assembled contigs
 of a single bacterial isolate.
 

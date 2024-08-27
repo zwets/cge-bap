@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.PointFinder - service shim to the PointFinder backend
+# bap.shims.PointFinder - service shim to the PointFinder backend
 #
 
 import os, json, logging

@@ -1,4 +1,4 @@
-# Dockerfile for the KCRI CGE Bacterial Analysis Pipeline (BAP)
+# Dockerfile for the CGE Bacterial Analysis Pipeline (BAP)
 # ======================================================================
 
 # For full reproducibility, pin the package versions installed by apt
@@ -205,7 +205,7 @@ ENV PATH $PATH""\
 # Copy contents of src into /usr/src
 COPY src ./
 
-# Install the KCRI BAP specific code
+# Install the BAP specific code
 RUN python3 setup.py install
 
 

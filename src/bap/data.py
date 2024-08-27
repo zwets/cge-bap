@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.data
+# bap.data
 #
 #   Defines the data structures that are shared across the BAP services.
 #

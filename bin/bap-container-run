@@ -2,7 +2,7 @@
 #
 # bap-container-run - run the BAP docker image
 #
-#   Convenience wrapper for running the kcri-cge-bap docker container.
+#   Convenience wrapper for running the cge-bap docker container.
 #
 #   NOTE: you will need to set the BAP_DB_DIR and BAP_IMAGE variables
 #   below to match your installation, or override them on invocation.
@@ -37,15 +37,15 @@
 # - If some databases are located elsewhere on your filesystem, and you don't
 #   want to keep two copies, simply 'mount them in' by adding to the docker
 #   run command below: '-v /my/path/to/foofinder:/databases/foofinder:ro'
-# - Default is the path used on the KCRI cluster.
-BAP_DB_DIR="${BAP_DB_DIR:-"/data/genomics/cge/db"}"
+# - Default is just an example path.
+BAP_DB_DIR="${BAP_DB_DIR:-"/data/cge/db"}"
 #
 # BAP_IMAGE
 # - Needs changing only if (by default) you want to run a different tag
 # - Recommended to do in a mixed development & production environment:
-#   tag the stable release to e.g. 'kcri-cge-bap:prod' and set it here.
+#   tag the stable release to e.g. 'cge-bap:prod' and set it here.
 # The default is the 'latest' (development) build on this machine.
-BAP_IMAGE="${BAP_IMAGE:-"kcri-cge-bap:latest"}"
+BAP_IMAGE="${BAP_IMAGE:-"cge-bap:latest"}"
 
 ### No changes needed beyond this point, but feel free to look ###
 

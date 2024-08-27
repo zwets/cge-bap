@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# kcri.bap.shims.KCST - service shim to the KCST backend
+# bap.shims.KCST - service shim to the KCST backend
 #
 
 import os, logging
