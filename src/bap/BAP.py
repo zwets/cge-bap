@@ -91,6 +91,7 @@ per line, in a text file and pass this file with @FILENAME.
     group.add_argument('-l', '--list-available', action='store_true', help="list the available targets and services")
     group.add_argument('-d', '--db-root',  metavar='PATH', default='/databases', help="base path to service databases (leave default when dockerised)")
     group.add_argument('-v', '--verbose',  action='store_true', help="write verbose output to stderr")
+    group.add_argument('--version',        action='store_true', help="report BAP version number (with verbose: include backend versions)")
     group.add_argument('files', metavar='FILE', nargs='*', default=[], help="input file(s) in optionally gzipped FASTA or fastq format")
 
     # Resource management arguments
@@ -143,6 +144,15 @@ per line, in a text file and pass this file with @FILENAME.
 
     # Perform the parsing
     args = parser.parse_args()
+
+    # Handle the `--version` argument
+    if args.version:
+        print('%s %s' % (SERVICE, VERSION))
+        if args.verbose:
+            from .shims.versions import BACKEND_VERSIONS
+            for entry in BACKEND_VERSIONS.items():
+                print('- %s %s' % entry)
+        sys.exit(0)
 
     # Parse targets and translate to workflow arguments
     targets = []
