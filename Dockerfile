@@ -21,6 +21,7 @@ FROM continuumio/miniconda3:24.9.2-0
 # - g++ and gawk and libboost-iostreams for kcst
 # - g++ and the libboost packages for SKESA
 # - file for KCST
+# - minimap2 for Kleborate and Kaptive
 # - prodigal for cgMLST
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -36,6 +37,7 @@ RUN apt-get -qq update --fix-missing && \
         libboost-timer-dev \
         libboost-chrono-dev \
         libboost-system-dev \
+        minimap2 \
         prodigal \
     && \
     apt-get -qq clean && \
@@ -60,12 +62,16 @@ RUN echo "unset HISTFILE" >>/etc/bash.bashrc && \
 # - cgMLST requires ete3 in its make_nj_tree.py, which we don't use,
 #   and spuriously in cgMLST.py, where we comment it out (see patch).
 
-RUN conda install --quiet --yes \
-        nomkl biopython pandas \
+RUN conda install -c conda-forge -c bioconda --quiet --yes \
+        nomkl 'biopython>=1.83' pandas \
         psutil tabulate python-dateutil gitpython \
     && \
     conda list && \
     conda clean -qy --tarballs
+
+# Kleborate depends on kaptive depends on dna_features viewer
+# @TODO@ install from source with version pinned
+RUN pip install dna_features_viewer kaptive kleborate 
 
 
 # Other dependencies
