@@ -90,7 +90,8 @@ per line, in a text file and pass this file with @FILENAME.
     group.add_argument('-o', '--out-dir',  metavar='PATH', default='.', help="directory to write output to, will be created (relative to PWD when dockerised)")
     group.add_argument('-l', '--list-available', action='store_true', help="list the available targets and services")
     group.add_argument('-d', '--db-root',  metavar='PATH', default='/databases', help="base path to service databases (leave default when dockerised)")
-    group.add_argument('-v', '--verbose',  action='store_true', help="write verbose output to stderr")
+    group.add_argument('-q', '--quiet',    action='store_true', help="do not write progress log to stderr")
+    group.add_argument('-v', '--verbose',  action='store_true', help="write more detail to the workflow logs")
     group.add_argument('--version',        action='store_true', help="report BAP version number (with verbose: include backend versions)")
     group.add_argument('files', metavar='FILE', nargs='*', default=[], help="input file(s) in optionally gzipped FASTA or fastq format")
 
@@ -148,10 +149,9 @@ per line, in a text file and pass this file with @FILENAME.
     # Handle the `--version` argument
     if args.version:
         print('%s %s' % (SERVICE, VERSION))
-        if args.verbose:
-            from .shims.versions import BACKEND_VERSIONS
-            for entry in BACKEND_VERSIONS.items():
-                print('- %s %s' % entry)
+        from .shims.versions import BACKEND_VERSIONS
+        for entry in BACKEND_VERSIONS.items():
+            print('- %s %s' % entry)
         sys.exit(0)
 
     # Parse targets and translate to workflow arguments
@@ -255,7 +255,7 @@ per line, in a text file and pass this file with @FILENAME.
             sample_id = "SAMPLE"
 
     # Set up the Workflow execution
-    blackboard = BAPBlackboard(args.verbose)
+    blackboard = BAPBlackboard(not args.quiet)
     blackboard.start_run(SERVICE, VERSION, vars(args))
     blackboard.put_db_root(db_root)
     blackboard.put_sample_id(sample_id)
@@ -279,7 +279,7 @@ per line, in a text file and pass this file with @FILENAME.
         blackboard.put_user_plasmids(list(filter(None, map(lambda x: x.strip(), args.plasmids.split(',')))))
 
     # Pass the actual data via the blackboard
-    scheduler = SubprocessScheduler(args.max_cpus, args.max_mem, args.max_time, args.poll, not args.verbose)
+    scheduler = SubprocessScheduler(args.max_cpus, args.max_mem, args.max_time, args.poll, args.quiet or not args.verbose)
     executor = Executor(SERVICES, scheduler)
     workflow = Workflow(DEPENDENCIES, params, targets, excludes)
     executor.execute(workflow, blackboard)
@@ -287,7 +287,7 @@ per line, in a text file and pass this file with @FILENAME.
 
     # Write the JSON results file
     with open('bap-results.json', 'w') as f_json:
-        json.dump(blackboard.as_dict(args.verbose), f_json)
+        json.dump(blackboard.as_dict(True), f_json)
 
     # Write the TSV summary results file
     with open('bap-summary.tsv', 'w') as f_tsv:
