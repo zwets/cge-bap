@@ -10,7 +10,7 @@
 # ----------------------------------------------------------------------
 
 # Use miniconda with Python 3.12
-FROM continuumio/miniconda3:24.7.1-0
+FROM continuumio/miniconda3:24.9.2-0
 
 
 # System dependencies
@@ -56,16 +56,14 @@ RUN echo "unset HISTFILE" >>/etc/bash.bashrc && \
 # - Our jobcontrol module (picoline) requires psutil
 # - Biopython and tabulate are used by all CGE services
 # - ResFinder requires python-dateutil and gitpython
-# - pandas required by cgelib required since ResFinder 4.2.1
+# - pandas required by cgelib since ResFinder 4.2.1
 # - cgMLST requires ete3 in its make_nj_tree.py, which we don't use,
 #   and spuriously in cgMLST.py, where we comment it out (see patch).
 
 RUN conda install --quiet --yes \
-        nomkl \
-	psutil \
-	biopython tabulate \
-	python-dateutil gitpython \
-        pandas && \
+        nomkl biopython pandas \
+        psutil tabulate python-dateutil gitpython \
+    && \
     conda list && \
     conda clean -qy --tarballs
 
@@ -74,13 +72,10 @@ RUN conda install --quiet --yes \
 # ----------------------------------------------------------------------
 
 # SKESA, BLAST, Quast, Flye are available in the 'bioconda' channel, but
-# yield # myriad dependency conflicts, hence we install them from source.
-
-#RUN conda config --add channels bioconda && \
-#    conda config --add channels defaults && \
-#    conda config --set channel_priority strict && \
-#    conda update --all && \
-#    conda install blast skesa quast
+# yield myriad dependency conflicts, hence we install them from source.
+#
+#    conda install -c conda-forge -c bioconda --quiet --yes \
+#        blast skesa quast
 
 
 # Install External Deps
