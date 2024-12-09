@@ -125,12 +125,12 @@ Run a terminal shell in the container:
 
 The BAP was developed to run on a moderately high-end Linux workstation
 (see [history](#history-and-credits) below).  It is most easily installed
-in a Podman or Docker container.
+as a Podman, Singularity or Docker image.
 
 The installation has two major steps: building the image, and downloading
 the databases.
 
-### Installation - Podman or Docker Image
+### Installation - Building the Image
 
 Clone and enter this repository
 
