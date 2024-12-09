@@ -10,7 +10,7 @@
 # ----------------------------------------------------------------------
 
 # Use miniconda with Python 3.12
-FROM continuumio/miniconda3:24.9.2-0
+FROM docker.io/continuumio/miniconda3:24.9.2-0
 
 
 # System dependencies
@@ -203,11 +203,8 @@ COPY src ./
 RUN python3 setup.py install
 
 
-# Set up user and workdir
+# Set up workdir and default command
 #----------------------------------------------------------------------
-
-# Drop to user nobody (running containers as root is not a good idea)
-USER nobody:nogroup
 
 # Change to the mounted workdir as initial PWD
 WORKDIR /workdir

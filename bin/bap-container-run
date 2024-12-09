@@ -1,15 +1,15 @@
 #!/bin/sh
 #
-# bap-container-run - run the BAP docker image
+# bap-container-run - run the BAP podman or docker image
 #
-#   Convenience wrapper for running the cge-bap docker container.
+#   Convenience wrapper for running the cge-bap image.
 #
 #   NOTE: you will need to set the BAP_DB_DIR and BAP_IMAGE variables
 #   below to match your installation, or override them on invocation.
 #
 # USAGE
 #
-#   All arguments are passed verbatim to the docker run command, so this
+#   All arguments are passed verbatim to the run command, so this
 #   script can be used to run any program on PATH in the container:
 #
 #       bap-container-run kma_index ...
@@ -34,18 +34,23 @@
 #
 # BAP_DB_DIR
 # - Must be set to the root directory of the CGE databases.
-# - If some databases are located elsewhere on your filesystem, and you don't
-#   want to keep two copies, simply 'mount them in' by adding to the docker
+# - If some databases are located elsewhere on your filesystem, and you
+#   don't want to keep two copies, simply 'mount them in' by adding to the
 #   run command below: '-v /my/path/to/foofinder:/databases/foofinder:ro'
-# - Default is just an example path.
+# - Default is an example path (that I happen to use on my machine).
 BAP_DB_DIR="${BAP_DB_DIR:-"/data/cge/db"}"
 #
 # BAP_IMAGE
-# - Needs changing only if (by default) you want to run a different tag
-# - Recommended to do in a mixed development & production environment:
-#   tag the stable release to e.g. 'cge-bap:prod' and set it here.
-# The default is the 'latest' (development) build on this machine.
-BAP_IMAGE="${BAP_IMAGE:-"cge-bap:latest"}"
+# - Change this if you renamed the image or you don't want to run ':latest'
+# - Recommendation for a mixed development & production environment:
+#   tag the stable release to e.g. 'localhost/cge-bap:prod' and set it here.
+# - Default is the name of the image as produced by the build.sh script.
+BAP_IMAGE="${BAP_IMAGE:-"localhost/cge-bap:latest"}"
+#
+# BAP_RUNTIME
+# - Set to (optional full path to) the podman or docker command
+# - Default is to autodetect the presence of either the podman or docker command
+BAP_RUNTIME="${BAP_RUNTIME:-$(command -v podman || command -v docker || true)}"
 
 ### No changes needed beyond this point, but feel free to look ###
 
@@ -54,7 +59,10 @@ err_exit() { echo "$(basename "$0"): $*" >&2; exit 1; }
 [ -d "$BAP_DB_DIR" ] ||
     err_exit "please set BAP_DB_DIR to a valid directory: no such directory: $BAP_DB_DIR"
 
-[ -n "$BAP_IMAGE" ] && [ -n "$(docker image ls -q "$BAP_IMAGE" 2>/dev/null)" ] ||
+[ -n "$BAP_RUNTIME" ] ||
+    err_exit "neither podman nor docker command found, please set BAP_RUNTIME"
+
+[ -n "$BAP_IMAGE" ] && [ -n "$("$BAP_RUNTIME" image ls -q "$BAP_IMAGE" 2>/dev/null)" ] ||
     err_exit "either docker is not running or BAP_IMAGE ($BAP_IMAGE) is incorrect"
 
 [ -z "$BAP_WORK_DIR" ] || [ -d "$BAP_WORK_DIR" ] ||
@@ -63,10 +71,10 @@ err_exit() { echo "$(basename "$0"): $*" >&2; exit 1; }
 # If no arguments, pass the arguments for entering interactive bash
 [ $# -eq 0 ] && { OPT_TI="-ti"; DO_CMD="bash"; } || unset OPT_TI DO_CMD
 
-# Run docker image BAP_IMAGE as the invoking user, with BAP_WORK_DIR mounted
+# Run image BAP_IMAGE as the invoking user, with BAP_WORK_DIR mounted
 # as workdir, BAP_DB_DIR mounted read-only at /databases, and the host root at /.
 
-exec docker run --userns=host -u "$(id -u):$(id -g)" $OPT_TI --rm --read-only \
+exec $BAP_RUNTIME run $OPT_TI --rm --read-only \
    --tmpfs /run --tmpfs /tmp -v /:/host:ro \
    -v "$BAP_DB_DIR:/databases:ro" \
    -v "${BAP_WORK_DIR:-$PWD}:/workdir" \

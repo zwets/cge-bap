@@ -125,17 +125,12 @@ Run a terminal shell in the container:
 
 The BAP was developed to run on a moderately high-end Linux workstation
 (see [history](#history-and-credits) below).  It is most easily installed
-in a Docker container.
+in a Podman or Docker container.
 
-The installation has two major steps: building the Docker image, and
-downloading the databases.
+The installation has two major steps: building the image, and downloading
+the databases.
 
-### Installation - Docker Image
-
-Test that Docker is installed
-
-    docker version
-    docker run hello-world
+### Installation - Podman or Docker Image
 
 Clone and enter this repository
 
@@ -146,12 +141,12 @@ Download the backend services
 
     ext/update-backends.sh
 
-Build the `cge-bap` Docker image
+Build the `cge-bap` image
 
     ./build.sh
 
     # Or manually do what build.sh does:
-    #docker build -t cge-bap "." | tee build.log
+    #podman build -t localhost/cge-bap "." | tee build.log
 
 Smoke test the container
 
@@ -265,7 +260,7 @@ Prior to that, the original CGE BAP (citation below, source code at
 conceived and developed at the Centre for Genomic Epidemiology at DTU.
 
 The BAP was developed to run on modest hardware, including laptops that
-could be used in the field.  It will still run comfortable on an 8-core,
+could be used in the field.  It will still run comfortably on an 8-core,
 32GB machine.
 
 As the BAP evolved, its workflow logic became unwieldy and was factored into
