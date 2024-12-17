@@ -26,12 +26,12 @@ PATH="$(realpath -e "$(dirname "$0")"):$PATH"
 for D in resfinder disinfinder virulencefinder plasmidfinder pmlst choleraefinder; do
     printf 'Indexing %s ... ' $D
     cd "$BASE_DIR/$D" 2>/dev/null || { printf 'NOT FOUND\n'; continue; }
-    grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
+    grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
         any_newer "$N.fsa" "$N.seq.b" &&
 	kma_index -i "$N.fsa" -o "$N" 2>&1 | grep -v '^#' || 
         true
     done
-    [ $D != resfinder ] || kma_index -i *.fsa -o ./all
+    [ $D != resfinder ] || kma_index -i $(grep -Ev '^\s*(#|$)' config | cut -f1 | sed -Ee 's/$/.fsa/') -o ./all
     printf 'OK\n'
 done
 
@@ -43,7 +43,7 @@ for D in mlst; do
     cd "$BASE_DIR/$D"
     # Patch persistent issue with CGE MLST config for llactis
     sed -i -Ee 's/^(llactis.*)bcaT.*$/\1terL,mcp,mtp,tmp,lys/' config
-    grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
+    grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
         [ "$N/$N.fsa" -nt "$N/$N.seq.b" ] &&
         kma_index -i "$N/$N.fsa" -o "$N/$N" 2>&1 | grep -v '^#' || 
         true
@@ -56,7 +56,7 @@ printf 'Creating KCST database (this may take a while) ... ' $D
 cd "$BASE_DIR/mlst"
 p='ctropicalis/ctropicalis.fsa'
 [ ! -f "$p" ] || ! grep -Eq '^>SAPT4_139$' "$p" || sed -i.bak -Ee '/>SAPT4_139$/,+1d' "$p"
-grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
+grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
     [ "$N/$N.fsa" -nt "kcst.db" ] && make-kcst-db.sh -f "." && break || continue
 done
 [ ! -f "$p.bak" ] || mv -f "$p.bak" "$p"
@@ -67,7 +67,7 @@ printf 'OK\n'
 for D in pointfinder; do
     printf 'Indexing %s ... ' $D
     cd "$BASE_DIR/$D"
-    grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
+    grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
         cd "$BASE_DIR/$D/$N" &&
         any_newer '*.fsa' "$N.seq.b" &&
         kma_index -i *.fsa -o "$N" 2>&1 | grep -v '^#' || 
@@ -82,7 +82,7 @@ done
 for D in kmerfinder; do
     printf 'Indexing %s ... ' $D
     cd "$BASE_DIR/$D"
-    [ -f config ] && grep -Ev '^[[:space:]]*(#|$)' config | cut -f1 | while read N REST; do
+    [ -f config ] && grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
         B="${N%.*}"
         S="${N##*.}"
         [ "$S" != "$B" ] || S='-'
