@@ -10,7 +10,7 @@
 # ----------------------------------------------------------------------
 
 # Use miniconda with Python 3.12
-FROM docker.io/continuumio/miniconda3:24.9.2-0
+FROM docker.io/continuumio/miniconda3:24.11.1-0
 
 
 # System dependencies
