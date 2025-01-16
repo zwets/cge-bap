@@ -57,10 +57,14 @@ grep -E '^ *[^#]' "$CFG_FILE" | while read NAME VER URL REST; do
     if [ "${URL%gz}" = "${URL}" ]; then  # assume git
 
         DIR="$BASE_DIR/$NAME"
-        [ -d "$DIR" ] || git clone -q "$URL" "$DIR" && cd "$DIR" || 
+        if [ -d "$DIR" ]; then
+            [ "$(git -C "$DIR" remote get-url origin)" = "$URL" ] ||
+                err_exit "remove directory $DIR; it does not point at $URL"
+        elif ! git clone -q "$URL" "$DIR";  then
             err_exit "failed to clone $NAME: $URL"
+        fi
 
-        [ -d "$DIR/.git" ] && cd "$DIR" || err_exit "no git repository: $DIR"
+        cd "$DIR"
 
         GIT_OLD="$(git describe --dirty --broken --tags --abbrev=1 --always)"
 

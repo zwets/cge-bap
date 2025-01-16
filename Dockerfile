@@ -181,7 +181,8 @@ RUN python3 -m compileall \
     ext/kmerfinder \
     ext/mlst \
     ext/plasmidfinder \
-    ext/pmlst
+    ext/pmlst && \
+    chmod +x ext/kmerfinder/kmerfinder.py
 
 # Add service script directories to PATH
 ENV PATH $PATH""\
