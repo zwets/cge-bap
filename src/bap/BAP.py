@@ -40,7 +40,7 @@ def first_line_matches(fname, regex):
 
 # Helper to detect whether fastq file has Illumina reads
 def is_illumina_reads(fname):
-    return first_line_matches(fname, r'^@[^:]+:\d+:[^:]+:\d+:\d+:\d+:\d+ [12]:[YN]:\d+:[^: ]+( .*)?$')
+    return first_line_matches(fname, r'^@.+?(:.+?){2}(:\d+?){4} [12]:[YN]:\d+:[^: ]+( .*)?$')
 
 # Helper to detect whether fastq file has Illumina reads
 def is_nanopore_reads(fname):
