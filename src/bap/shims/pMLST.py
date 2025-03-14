@@ -56,7 +56,7 @@ class pMLSTShim:
         try:
             db_dir = execution.get_db_path('pmlst')
             db_cfg = os.path.join(db_dir, 'config')
-            inputs = execution.get_illufq_or_contigs_paths()
+            inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
 
             # Determine schemes to run pMLST for from user input and PF output
             schemes, warnings = self.determine_schemes(db_cfg, scheme_lst, plasmid_lst)

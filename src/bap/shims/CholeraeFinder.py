@@ -35,7 +35,7 @@ class CholeraeFinderShim:
         try:
             db_path = execution.get_db_path('choleraefinder')
             # Note: errors out if only Nanopore reads available (which we can't handle yet)
-            inputs = execution.get_illufq_or_contigs_paths()
+            inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
 
             params = [ '-q',
                 '-p', db_path,

@@ -30,11 +30,12 @@ class KmerFinderShim:
         try:
             kf_scheme = execution.get_user_input('kf_s')
             db_path, tax_file = find_db(execution.get_db_path('kmerfinder'), kf_scheme)
+            inputs = list(map(os.path.abspath, execution.get_fastq_or_contigs_paths()))
             params = [
                 '-q',
                 '-db', db_path,
                 '-o', '.',
-                '-i' ] + execution.get_fastq_or_contigs_paths()
+                '-i' ] + inputs
             if tax_file:
                 params.extend(['-tax', tax_file])
 

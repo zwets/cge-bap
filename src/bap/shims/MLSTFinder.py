@@ -37,12 +37,12 @@ class MLSTFinderShim:
         try:
             db_dir = execution.get_db_path('mlst')
             db_cfg = os.path.join(db_dir, 'config')
-            files = execution.get_illufq_or_contigs_paths()
+            inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
 
             # Determine schemes to run from lists of genus, schemes, species
             schemes = self.determine_schemes(db_cfg, genus_lst, scheme_lst, species_lst)
 
-            execution.start(schemes, files, db_dir)
+            execution.start(schemes, inputs, db_dir)
 
         # Failing inputs will throw UserException
         except UserException as e:
