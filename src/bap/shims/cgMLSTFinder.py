@@ -38,7 +38,7 @@ class cgMLSTFinderShim:
             db_cfg = os.path.join(db_dir, 'config')
 
             # We error out if only Nanopore reads available (which we can't handle yet)
-            inputs = ','.join(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
+            inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
             schemes = self.determine_schemes(db_cfg, scheme_lst, species_lst)
             execution.start(schemes, inputs, db_dir)
 
@@ -113,11 +113,10 @@ class cgMLSTExecution(ServiceExecution):
         # Create a command line for the job
         tmpdir = tempfile.TemporaryDirectory()
         params = [
-                '-i', inputs,
                 '-db', db_dir,
                 '-t', tmpdir.name,
 #                '-o', '.',
-                '-s', scheme ]
+                '-s', scheme ] + inputs
 
         # Spawn the job and hold a record in the jobs table
         job_spec = JobSpec('cgMLST.py', params, MAX_CPU, MAX_MEM, MAX_TIM)
