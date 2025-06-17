@@ -37,7 +37,7 @@ class CholeraeFinderShim:
             # Note: errors out if only Nanopore reads available (which we can't handle yet)
             inputs = list(map(os.path.abspath, execution.get_illufq_or_contigs_paths()))
 
-            params = [ '-q',
+            params = [ '-q', '-x',
                 '-p', db_path,
                 '-t', execution.get_user_input('ch_i'),
                 '-l', execution.get_user_input('ch_c'),
@@ -78,18 +78,18 @@ class CholeraeFinderExecution(ServiceExecution):
         '''Collect the job output and put on blackboard.
            This method is called by super().report() once job is done.'''
 
-        # Clean up the tmp dir used by backend
-        self._tmp_dir.cleanup()
-        self._tmp_dir = None
-
-        # Load the JSON and obtain the 'results' element.
-        out_file = job.file_path('data_CholeraeFinder.json')
+        # The JSON output is in tmp_dir, not in the job output path
+        # Load the JSON whichand obtain the top-level element one down
+        json_file = os.path.join(self._tmp_dir.name, 'data_CholeraeFinder.json')
         try:
-            with open(out_file, 'r') as f: json_in = json.load(f)
+            with open(json_file, 'r') as f: json_in = json.load(f)
             json_in = json_in['choleraefinder']
         except:
-            self.fail('failed to open or load JSON from file: %s' % out_file)
+            self.fail('failed to open or load JSON from file: %s' % json_file)
             return
+        finally:
+            self._tmp_dir.cleanup()
+            self._tmp_dir = None
 
         # Results are an extra (capitalised) layer deep.  We strip this and
         # (as we do for other finders) change dicts to arrays as the hit names
