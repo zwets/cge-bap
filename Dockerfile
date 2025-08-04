@@ -9,8 +9,8 @@
 # Load base Docker image
 # ----------------------------------------------------------------------
 
-# Use miniconda with Python 3.12
-FROM docker.io/continuumio/miniconda3:24.11.1-0
+# Use miniconda with Python 3.13
+FROM docker.io/continuumio/miniconda3:25.3.1-1
 
 
 # System dependencies
@@ -60,9 +60,9 @@ RUN echo "unset HISTFILE" >>/etc/bash.bashrc && \
 # - cgMLST requires ete3 in its make_nj_tree.py, which we don't use,
 #   and spuriously in cgMLST.py, where we comment it out (see patch).
 
-RUN conda install --quiet --yes \
-        nomkl biopython pandas \
-        psutil tabulate python-dateutil gitpython \
+RUN conda install -c conda-forge -c bioconda --quiet --yes \
+        nomkl 'biopython>=1.85' 'pandas>=2.1.4' 'numpy>=1.26.2' \
+        psutil tabulate 'python-dateutil>=2.8.2' 'gitpython>=3.1.40' \
     && \
     conda list && \
     conda clean -qy --tarballs
@@ -106,7 +106,7 @@ RUN cd ext/skesa && \
 
 # Make and install flye
 RUN cd ext/flye && \
-    python3 setup.py install && \
+    pip install -q --no-cache-dir . && \
     cd .. && rm -rf flye
 
 # Make and install kcst
@@ -134,17 +134,19 @@ RUN cd ext/fastq-utils && \
 
 # Install the picoline module
 RUN cd ext/picoline && \
-    python3 setup.py install && \
+    pip install -q --no-cache-dir . && \
     cd .. && rm -rf picoline
 
 # Install the cgecore module
+# TEMPORARY patch for: https://bitbucket.org/genomicepidemiology/cgecore/issues/1/module-alignmentpy-hidden-by-module
 RUN cd ext/cgecore && \
-    python3 setup.py install && \
+    cp src/cgecore/alignment.py src/cgecore/alignment/__init__.py && \
+    pip install -q --no-cache-dir . && \
     cd .. && rm -rf cgecore
 
 # Install the cgelib module
 RUN cd ext/cgelib && \
-    python3 setup.py install && \
+    pip install -q --no-cache-dir . && \
     cd .. && rm -rf cgelib
 
 
@@ -155,7 +157,7 @@ RUN cd ext/cgelib && \
 # old cgecore which breaks virulencefinder and others (no .gz support),
 # so we install the dependencies ourselves (see above) and --no-deps.
 
-# OVERRIDE for now: install from source
+# OVERRIDE the override for now and install from source
 #RUN pip install --no-color --no-deps --no-cache-dir resfinder
 
 # Install resfinder module from source
@@ -170,7 +172,7 @@ RUN python3 -m compileall ext/virulencefinder/src/virulencefinder && \
     > /usr/local/bin/virulencefinder && \
     chmod +x /usr/local/bin/virulencefinder
 
-# Patch cgmlstfinder ete3 dependency and directory bug
+# Patch out massive unused cgmlstfinder ete3 dependency
 RUN sed -i -Ee 's@^from ete3 import@#from ete3 import@' \
         'ext/cgmlstfinder/cgMLST.py'
 
@@ -201,7 +203,7 @@ ENV PATH $PATH""\
 COPY src ./
 
 # Install the BAP specific code
-RUN python3 setup.py install
+RUN pip install -q --no-cache-dir .
 
 
 # Set up workdir and default command

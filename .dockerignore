@@ -1,8 +1,8 @@
-.DS_Store
-.git
-*.tar.gz
-*.pyc
-__pycache__
+**/.DS_Store
+**/.git
+**/*.pyc
+**/__pycache__
+**/*.tar.gz
 /bin
 /build.*
 /ext/*.sh
