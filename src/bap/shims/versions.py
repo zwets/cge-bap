@@ -6,7 +6,7 @@
 BACKEND_VERSIONS = dict()
 BACKEND_VERSIONS["cgecore"] = "cleanup-tmpdirs"
 BACKEND_VERSIONS["cgelib"] = "0.7.5"
-BACKEND_VERSIONS["cgmlstfinder"] = "1.1.5"
+BACKEND_VERSIONS["cgmlstfinder"] = "1.2.0"
 BACKEND_VERSIONS["choleraefinder"] = "1.0.0"
 BACKEND_VERSIONS["kmerfinder"] = "3.0.2"
 BACKEND_VERSIONS["mlst"] = "2.0.9"
