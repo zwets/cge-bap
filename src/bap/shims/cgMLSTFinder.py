@@ -115,8 +115,8 @@ class cgMLSTExecution(ServiceExecution):
         params = [
                 '-db', db_dir,
                 '-t', tmpdir.name,
-#                '-o', '.',
-                '-s', scheme ] + inputs
+                '-s', scheme,
+                '-i', ','.join(inputs) ]
 
         # Spawn the job and hold a record in the jobs table
         job_spec = JobSpec('cgMLST.py', params, MAX_CPU, MAX_MEM, MAX_TIM)
