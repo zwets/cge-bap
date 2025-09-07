@@ -21,7 +21,6 @@ FROM docker.io/continuumio/miniconda3:25.3.1-1
 # - g++ and gawk and libboost-iostreams for kcst
 # - g++ and the libboost packages for SKESA
 # - file for KCST
-# - prodigal for cgMLST
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -qq update --fix-missing && \
@@ -36,7 +35,6 @@ RUN apt-get -qq update --fix-missing && \
         libboost-timer-dev \
         libboost-chrono-dev \
         libboost-system-dev \
-        prodigal \
     && \
     apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/*
@@ -59,9 +57,10 @@ RUN echo "unset HISTFILE" >>/etc/bash.bashrc && \
 # - pandas required by cgelib since ResFinder 4.2.1
 # - cgMLST requires ete3 in its make_nj_tree.py, which we don't use,
 #   and spuriously in cgMLST.py, where we comment it out (see patch).
+# - pyrodigal for cgMSLT
 
 RUN conda install -c conda-forge -c bioconda --quiet --yes \
-        nomkl 'biopython>=1.85' 'pandas>=2.1.4' 'numpy>=1.26.2' \
+        nomkl 'biopython>=1.85' 'pandas>=2.1.4' 'numpy>=1.26.2' 'pyrodigal>=3.6.3' \
         psutil tabulate 'python-dateutil>=2.8.2' 'gitpython>=3.1.40' && \
     conda list && \
     conda clean -qafy
