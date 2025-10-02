@@ -62,10 +62,9 @@ RUN echo "unset HISTFILE" >>/etc/bash.bashrc && \
 
 RUN conda install -c conda-forge -c bioconda --quiet --yes \
         nomkl 'biopython>=1.85' 'pandas>=2.1.4' 'numpy>=1.26.2' \
-        psutil tabulate 'python-dateutil>=2.8.2' 'gitpython>=3.1.40' \
-    && \
+        psutil tabulate 'python-dateutil>=2.8.2' 'gitpython>=3.1.40' && \
     conda list && \
-    conda clean -qy --tarballs
+    conda clean -qafy
 
 
 # Other dependencies
