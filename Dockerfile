@@ -104,7 +104,7 @@ RUN cd ext/skesa && \
 
 # Make and install flye
 RUN cd ext/flye && \
-    pip install -q --no-cache-dir . && \
+    pip install -q --root-user-action ignore --no-cache-dir . && \
     cd .. && rm -rf flye
 
 # Make and install kcst
@@ -132,19 +132,19 @@ RUN cd ext/fastq-utils && \
 
 # Install the picoline module
 RUN cd ext/picoline && \
-    pip install -q --no-cache-dir . && \
+    pip install -q --root-user-action ignore --no-cache-dir . && \
     cd .. && rm -rf picoline
 
 # Install the cgecore module
 # TEMPORARY patch for: https://bitbucket.org/genomicepidemiology/cgecore/issues/1/module-alignmentpy-hidden-by-module
 RUN cd ext/cgecore && \
     cp src/cgecore/alignment.py src/cgecore/alignment/__init__.py && \
-    pip install -q --no-cache-dir . && \
+    pip install -q --root-user-action ignore --no-cache-dir . && \
     cd .. && rm -rf cgecore
 
 # Install the cgelib module
 RUN cd ext/cgelib && \
-    pip install -q --no-cache-dir . && \
+    pip install -q --root-user-action ignore --no-cache-dir . && \
     cd .. && rm -rf cgelib
 
 
@@ -170,6 +170,12 @@ RUN python3 -m compileall ext/virulencefinder/src/virulencefinder && \
     > /usr/local/bin/virulencefinder && \
     chmod +x /usr/local/bin/virulencefinder
 
+# Install plasmidfinder module from source
+RUN python3 -m compileall ext/plasmidfinder/src/plasmidfinder && \
+    printf '#!/bin/sh\nexport PYTHONPATH=/usr/src/ext/plasmidfinder/src\nexec python3 -m plasmidfinder "$@"\n' \
+    > /usr/local/bin/plasmidfinder && \
+    chmod +x /usr/local/bin/plasmidfinder
+
 # Patch out massive unused cgmlstfinder ete3 dependency
 RUN sed -i -Ee 's@^from ete3 import@#from ete3 import@' \
         'ext/cgmlstfinder/cgMLST.py'
@@ -180,7 +186,6 @@ RUN python3 -m compileall \
     ext/choleraefinder \
     ext/kmerfinder \
     ext/mlst \
-    ext/plasmidfinder \
     ext/pmlst && \
     chmod +x ext/kmerfinder/kmerfinder.py
 
@@ -190,7 +195,6 @@ ENV PATH $PATH""\
 ":/usr/src/ext/choleraefinder"\
 ":/usr/src/ext/kmerfinder"\
 ":/usr/src/ext/mlst"\
-":/usr/src/ext/plasmidfinder"\
 ":/usr/src/ext/pmlst"
 
 
@@ -201,7 +205,7 @@ ENV PATH $PATH""\
 COPY src ./
 
 # Install the BAP specific code
-RUN pip install -q --no-cache-dir .
+RUN pip install -q --root-user-action ignore --no-cache-dir .
 
 
 # Set up workdir and default command

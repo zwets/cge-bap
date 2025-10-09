@@ -73,7 +73,7 @@ class PlasmidFinderExecution(ServiceExecution):
         cfg_dict = parse_config(db_path)
         self._search_dict = find_databases(cfg_dict, search_list)
 
-        job_spec = JobSpec('plasmidfinder.py', params, MAX_CPU, MAX_MEM, MAX_TIM)
+        job_spec = JobSpec('plasmidfinder', params, MAX_CPU, MAX_MEM, MAX_TIM)
         self.store_job_spec(job_spec.as_dict())
 
         if self.state == Task.State.STARTED:
