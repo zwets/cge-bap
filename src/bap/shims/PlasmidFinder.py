@@ -37,6 +37,7 @@ class PlasmidFinderShim:
 
             params = [
                 '-q',
+                '-j', 'data.json',
                 '-p', db_path,
                 '-t', min_ident,
                 '-l', min_cov,
@@ -90,83 +91,35 @@ class PlasmidFinderExecution(ServiceExecution):
         self._tmp_dir.cleanup()
         self._tmp_dir = None
 
-        # Load the JSON and obtain the 'results' element.
+        res_out = dict()
+
         out_file = job.file_path('data.json')
         try:
             with open(out_file, 'r') as f: json_in = json.load(f)
-        except:
+        except Exception as e:
+            logging.exception(e)
             self.fail('failed to open or load JSON from file: %s' % out_file)
             return
 
-        # JSON can be string "No hits found" we turn into an empty dict, or otherwise
-        # a dict whose keys are the group names (column 2 in the config), with as value
-        # a dict whose keys are the db names (col 1 in the config), with as value
-        # a dict whose keys are the hit_ids (QUERY_CONTIG:QRY_POS..QRY_POS:TARGET_CTG:SCORE"), with as value
-        # a dict having the fields we need
-        # ... but we deconvolve all this for uniformity
+        # PlasmidFinder since 3.0.1 has standardised JSON with these elements:
+        # seq_regions (plasmid loci), seq_variations (empty), phenotypes (empty)
 
-        res_in = json_in.get(self._service_name, {}).get('results')
-        if res_in is None:
-            self.fail('no %s/results element in data.json' % self._service_name)
-            return
+        # We include these but change them from objects to lists, so this:
+        #   'seq_regions' : { 'XYZ': { ..., 'key' : 'XYZ', ...
+        # becomes:
+        #   'seq_regions' : [ { ..., 'key' : 'XYZ', ... }, ...]
+        # This is cleaner design (they have list semantics, not object), and
+        # avoids issues downstream with keys containing JSON delimiters.
 
-        if type(res_in) is not dict: # fix backend's "No hits found" to be {}
-            res_in = dict()
+        for k, v in json_in.items():
+            if k in ['seq_regions','seq_variations','phenotypes']:
+                res_out[k] = [ o for o in v.values() ]
+            else:
+                res_out[k] = v
 
-        # Make res_out a list of result objects, one per database that a search was
-        # requested for (even if no results).  So we iterate over the search_dict
-        # and pull results from res_in, rather than vice versa.
-        # Also we change the group and db names from key to values.
+        for r in res_out['seq_regions']:
+            self._blackboard.add_detected_plasmid(r.get('name','?unknown?'))
 
-        res_out = list()
- 
-        # Iterate over the groups and their databases search was requested for
-        for grp, dbs in self._search_dict.items():
-
-            dbs_in = res_in.get(grp, dict())
-            dbs_in = dbs_in if type(dbs_in) is dict else dict()
-            dbs_out = list()
-
-            for db in dbs:
-
-                hits_in = dbs_in.get(db, dict())
-                hits_in = hits_in if type(hits_in) is dict else dict()
-                hits_out = list()
-
-                for hit in hits_in.values():
-
-                    plasmid = hit['plasmid']
-                    self._blackboard.add_detected_plasmid(plasmid)
-
-                    h_out = dict({
-                        'plasmid': plasmid,
-                        # common
-                        'hit_id':     hit['hit_id'],
-                        'group':      grp,
-                        'database':   db,
-                        'qry_ctg':    hit['contig_name'],
-                        'qry_pos':    hit['positions_in_contig'],
-                        'tgt_acc':    hit['accession'],
-                        'tgt_len':    hit['template_length'],
-                        'tgt_pos':    hit['position_in_ref'],
-                        'hsp_len':    hit['HSP_length'],
-                        'pct_cov':    hit['coverage'],
-                        'pct_ident':  hit['identity'],
-                        'quality':    hit['coverage'] * hit['identity'] / 100.0,
-                        'note':       hit['note']
-                        })
-
-                    # Append the hit to the output list
-                    hits_out.append(h_out)
-     
-                # Sort the hit list by descending goodness, and store under key db in dbs_out
-                hits_out.sort(key=lambda l: l['quality'], reverse=True)
-                dbs_out.append({ 'database': db, 'hits': hits_out })
-
-            # Put the dbs_out object under key grp in the res_out object
-            res_out.append({ 'group': grp, 'searches': dbs_out })
-
-        # Store the results on the blackboard
         self.store_results(res_out)
 
 
