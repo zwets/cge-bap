@@ -158,6 +158,12 @@ RUN cd ext/cgelib && \
 # OVERRIDE the override for now and install from source
 #RUN pip install --no-color --no-deps --no-cache-dir resfinder
 
+# Install speciesfinder module from source
+RUN python3 -m compileall ext/speciesfinder/src/speciesfinder && \
+    printf '#!/bin/sh\nexport PYTHONPATH=/usr/src/ext/speciesfinder/src\nexec python3 -m speciesfinder "$@"\n' \
+    > /usr/local/bin/speciesfinder && \
+    chmod +x /usr/local/bin/speciesfinder
+
 # Install resfinder module from source
 RUN python3 -m compileall ext/resfinder/src/resfinder && \
     printf '#!/bin/sh\nexport PYTHONPATH=/usr/src/ext/resfinder/src\nexec python3 -m resfinder "$@"\n' \
@@ -184,16 +190,13 @@ RUN sed -i -Ee 's@^from ete3 import@#from ete3 import@' \
 RUN python3 -m compileall \
     ext/cgmlstfinder \
     ext/choleraefinder \
-    ext/kmerfinder \
     ext/mlst \
-    ext/pmlst && \
-    chmod +x ext/kmerfinder/kmerfinder.py
+    ext/pmlst
 
 # Add service script directories to PATH
 ENV PATH $PATH""\
 ":/usr/src/ext/cgmlstfinder"\
 ":/usr/src/ext/choleraefinder"\
-":/usr/src/ext/kmerfinder"\
 ":/usr/src/ext/mlst"\
 ":/usr/src/ext/pmlst"
 

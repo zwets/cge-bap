@@ -7,7 +7,7 @@ import os, logging, functools
 from pico.workflow.executor import Task
 from pico.jobcontrol.job import JobSpec, Job
 from .base import ServiceExecution, UserException, SkipException
-from .KmerFinder import find_db as find_kmer_db
+from .SpeciesFinder import find_db as find_speciesfinder_db
 from .versions import BACKEND_VERSIONS
 
 # Our service name and current backend version
@@ -36,9 +36,9 @@ class GetReferenceShim:
         # From here run the execution, and FAIL it on exception
         try:
             # Retrieve the KMA database to retrieve the sequence from
-            kf_dbroot = execution.get_db_path('kmerfinder')
-            kf_search = execution.get_user_input('kf_s')
-            kma_db, _tax = find_kmer_db(kf_dbroot, kf_search)
+            sf_dbroot = execution.get_db_path('speciesfinder')
+            sf_search = execution.get_user_input('sf_s')
+            kma_db, _tax = find_speciesfinder_db(sf_dbroot, sf_search)
 
             # Write to accession.fna (assuming it has no weird chars)
             out_file = accession + '.fna'

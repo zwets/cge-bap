@@ -76,10 +76,10 @@ for D in pointfinder; do
     printf 'OK\n'
 done
 
-# cgMLSTFinder and KmerFinder come pre-indexed in production.  In test we
-# have no cgMLST, but we have a KmerFinder database we build from source.
+# cgMLSTFinder and SpeciesFinder come pre-indexed in production.  In test we
+# have no cgMLST, but we have a SpeciesFinder database we build from source.
 
-for D in kmerfinder; do
+for D in speciesfinder; do
     printf 'Indexing %s ... ' $D
     cd "$BASE_DIR/$D"
     [ -f config ] && grep -Ev '^\s*(#|$)' config | cut -f1 | while read N _; do
@@ -88,7 +88,7 @@ for D in kmerfinder; do
         [ "$S" != "$B" ] || S='-'
         cd "$BASE_DIR/$D/$B" &&
         any_newer '*.fna' "$N.seq.b" &&
-        kma_index -i *.fna -o "$N" -Sparse "$S" 2>&1 | grep -v '^#' ||
+        kma_index -i *.fna -o "$N" -k 14 -hq 0.9 -ht 0.9 -and -Sparse "$S" 2>&1 | grep -v '^#' ||
         true
     done
     printf 'OK\n'

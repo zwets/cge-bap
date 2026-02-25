@@ -53,7 +53,7 @@ class Services(pico.workflow.logic.Services):
     GFACONNECTOR = 'GFAConnector'
     MLSTFINDER = 'MLSTFinder'
     KCST = 'KCST'
-    KMERFINDER = 'KmerFinder'
+    SPECIESFINDER = 'SpeciesFinder'
     GETREFERENCE = 'GetReference'
     RESFINDER = 'ResFinder'
     POINTFINDER = 'PointFinder'
@@ -99,8 +99,8 @@ DEPENDENCIES = {
     UserTargets.ASSEMBLY:       ONE( Services.SKESA, Services.FLYE ),
     UserTargets.GRAPH:          ONE( Services.FLYE, Services.GFACONNECTOR ),
     UserTargets.SPECIES:        Checkpoints.SPECIES,
-    # Need the Services.GETREFERENCE to be OPT as it is OIF KmerFinder below
-    UserTargets.REFERENCE:      SEQ( Services.KMERFINDER, OPT( Services.GETREFERENCE ) ),
+    # Need the Services.GETREFERENCE to be OPT as it is OIF SpeciesFinder below
+    UserTargets.REFERENCE:      SEQ( Services.SPECIESFINDER, OPT( Services.GETREFERENCE ) ),
     UserTargets.MLST:           ONE( Services.MLSTFINDER, Services.KCST ),
     UserTargets.RESISTANCE:     ALL( OPT( Services.RESFINDER ), OPT( Services.POINTFINDER ), OPT( Services.DISINFINDER ) ),
     UserTargets.VIRULENCE:      Services.VIRULENCEFINDER,
@@ -123,8 +123,8 @@ DEPENDENCIES = {
     Services.SKESA:             Params.ILLUREADS,
     Services.FLYE:              Params.NANOREADS,
     Services.GFACONNECTOR:      ALL( Params.ILLUREADS, Checkpoints.CONTIGS ),
-    Services.KMERFINDER:        FST( Params.ILLUREADS, Checkpoints.CONTIGS, Params.NANOREADS ),
-    Services.GETREFERENCE:      OIF( Services.KMERFINDER ),  # Later: also work if species given and no KmerFinder
+    Services.SPECIESFINDER:        FST( Params.ILLUREADS, Checkpoints.CONTIGS, Params.NANOREADS ),
+    Services.GETREFERENCE:      OIF( Services.SPECIESFINDER ),  # Later: also work if species given and no SpeciesFinder
     Services.MLSTFINDER:        ALL( Checkpoints.SPECIES, ONE( Params.ILLUREADS, Checkpoints.CONTIGS ) ),
     Services.KCST:              Checkpoints.CONTIGS,
     Services.RESFINDER:         FST( Params.ILLUREADS, Checkpoints.CONTIGS, Params.NANOREADS ),
@@ -137,7 +137,7 @@ DEPENDENCIES = {
     Services.CHOLERAEFINDER:    ALL( Checkpoints.SPECIES, ONE( Params.ILLUREADS, Checkpoints.CONTIGS ) ),
 
     Checkpoints.CONTIGS:        ONE( Params.CONTIGS, Services.SKESA, Services.FLYE ),
-    Checkpoints.SPECIES:        ONE( Params.SPECIES, Services.KMERFINDER, Services.KCST ),
+    Checkpoints.SPECIES:        ONE( Params.SPECIES, Services.SPECIESFINDER, Services.KCST ),
     Checkpoints.PLASMIDS:       ONE( Params.PLASMIDS, Services.PLASMIDFINDER ),
 }
 

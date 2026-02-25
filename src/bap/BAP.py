@@ -105,8 +105,8 @@ per line, in a text file and pass this file with @FILENAME.
     # Service specific arguments
     group = parser.add_argument_group('ContigMetrics parameters')
     group.add_argument('--cm-l', metavar='NT', type=int, default=200, help="Minimum contig length to include in counts [200]")
-    group = parser.add_argument_group('KmerFinder parameters')
-    group.add_argument('--kf-s', metavar='SEARCH', default='bacteria', help="KmerFinder database to search [bacteria]")
+    group = parser.add_argument_group('SpeciesFinder parameters')
+    group.add_argument('--sf-s', metavar='SEARCH', default='bacteria', help="SpeciesFinder database to search [bacteria]")
     group = parser.add_argument_group('MLSTFinder parameters')
     group.add_argument('--mf-s', metavar='SCHEME[,...]', help="MLST schemes to apply (default: based on species)")
     group.add_argument('--mf-g', metavar='GENUS[,...]', help="MLST genus to type for (default: genus of the species)")

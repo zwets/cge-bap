@@ -21,7 +21,7 @@ for DB in \
     cgmlstfinder \
     choleraefinder \
     disinfinder \
-    kmerfinder \
+    speciesfinder \
     mlst \
     plasmidfinder \
     pmlst \
@@ -43,9 +43,9 @@ done
 "$IDX_SCRIPT" "$DEST"
 
 # Done.
-# Remind the user to download the KmerFinder and cgMLSTFinder databases.
+# Remind the user to download the SpeciesFinder and cgMLSTFinder databases.
 cat <<EOF
-NOTE: The KmerFinder and cgMLSTFinder databases are not complete yet.
+NOTE: The SpeciesFinder and cgMLSTFinder databases are not complete yet.
       You must download their data from the CGE ftp site.
       Refer to their README files for instructions.
 EOF

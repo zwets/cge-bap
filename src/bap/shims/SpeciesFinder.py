@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# bap.shims.KmerFinder - service shim to the KmerFinder backend
+# bap.shims.SpeciesFinder - service shim to the SpeciesFinder backend
 #
 
 import os, logging
@@ -10,7 +10,7 @@ from .base import ServiceExecution, UserException
 from .versions import BACKEND_VERSIONS
 
 # Our service name and current backend version
-SERVICE, VERSION = "KmerFinder", BACKEND_VERSIONS['kmerfinder']
+SERVICE, VERSION = "SpeciesFinder", BACKEND_VERSIONS['speciesfinder']
 
 # Backend resource parameters: cpu, memory, disk, run time reqs
 MAX_CPU = 1
@@ -18,30 +18,29 @@ MAX_MEM = 8
 MAX_TIM = 10 * 60
 
 
-class KmerFinderShim:
+class SpeciesFinderShim:
     '''Service shim that executes the backend.'''
 
     def execute(self, sid, xid, blackboard, scheduler):
         '''Invoked by the executor.  Creates, starts and returns the Task.'''
 
-        execution = KmerFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
+        execution = SpeciesFinderExecution(SERVICE, VERSION, sid, xid, blackboard, scheduler)
 
         # Get the execution parameters from the blackboard
         try:
-            kf_scheme = execution.get_user_input('kf_s')
-            db_path, tax_file = find_db(execution.get_db_path('kmerfinder'), kf_scheme)
+            sf_scheme = execution.get_user_input('sf_s')
+            db_path, tax_file = find_db(execution.get_db_path('speciesfinder'), sf_scheme)
             inputs = list(map(os.path.abspath, execution.get_fastq_or_contigs_paths()))
             params = [
-                '-q',
                 '-db', db_path,
                 '-o', '.',
                 '-i' ] + inputs
             if tax_file:
                 params.extend(['-tax', tax_file])
 
-            job_spec = JobSpec('kmerfinder.py', params, MAX_CPU, MAX_MEM, MAX_TIM)
+            job_spec = JobSpec('speciesfinder', params, MAX_CPU, MAX_MEM, MAX_TIM)
             execution.store_job_spec(job_spec.as_dict())
-            execution.start(job_spec, kf_scheme)
+            execution.start(job_spec, sf_scheme)
 
         # Failing inputs will throw UserException
         except UserException as e:
@@ -55,7 +54,7 @@ class KmerFinderShim:
         return execution
 
 
-class KmerFinderExecution(ServiceExecution):
+class SpeciesFinderExecution(ServiceExecution):
     '''A single execution of the service, returned by the shim's execute().'''
 
     _job = None
@@ -74,9 +73,9 @@ class KmerFinderExecution(ServiceExecution):
         results_file = job.file_path('results.txt')
         have_tax = os.path.exists(results_file)
         if not have_tax:
-            results_file = job.file_path('results.spa')
+            results_file = job.file_path('results.res')
             if not os.path.isfile(results_file):
-                self.fail("service ran but no results.txt or results.spa file in %s", job.file_path(""))
+                self.fail("service ran but no results.txt or results.res file in %s", job.file_path(""))
                 return False
 
         # The result list
@@ -84,10 +83,10 @@ class KmerFinderExecution(ServiceExecution):
 
         with open(results_file, 'r') as f:
 
-            # The spa (no tax) file has these columns, where Template matches one in the database.name file
-            # - Template (Accession " " Desc),Num,Score,Expected,Template_length,Query_Coverage,Template_Coverage,Depth,tot_query_Coverage,tot_template_Coverage,tot_depth,q_value,p_value
-            # The tax file has these (note Accession here is not one from the spa file, but the new GCF accession (and Assembly is unique)
-            # - 0:Assembly/accession,1:Num,Score,Expected,Template_length,Query_Coverage,Template_Coverage,Depth,tot_query_Coverage,tot_template_Coverage,tot_depth,q_value,p_value,Accession,Description,TAXID,Taxonomy,SpeciesTaxId,Species
+            # The res (no tax) file has these columns, where Template matches one in the database.name file
+            # - Template (Accession " " Desc),Score,Expected,Template_length,Template_Identity,Template_Coverage,Query_Identity,Query_Coverage,Depth,q_value,p_value
+            # The tax file has these (note Accession here is not one from the res file, but the new GCF accession (and Assembly is unique)
+            # - Assembly=Accession,Score,Expected,Template_length,Template_Identity,Template_Coverage,Query_Identity,Query_Coverage,Depth,q_value,p_value,Accession Number,Description,TAXID,Taxonomy,TAXID,Species
 
             # Skip header
             f.readline()
@@ -99,36 +98,33 @@ class KmerFinderExecution(ServiceExecution):
                 rec = line.split('\t')
 
                 # Bail out completely if line doesn't have the right number of record
-                if (have_tax and len(rec) != 19) or (not have_tax and len(rec) != 13):
-                    self.fail('invalid line in KmerFinder results: %s' % line)
+                if (have_tax and len(rec) != 17) or (not have_tax and len(rec) != 11):
+                    self.fail('invalid line in SpeciesFinder results: %s' % line)
                     return
 
                 # The accession and description are at 13,14 in tax, and joined at 0 in non-tax
-                acc_dsc = [rec[13].strip(), rec[14].strip()] if have_tax else rec[0].strip().split(' ')
+                acc_dsc = [rec[11].strip(), rec[12].strip()] if have_tax else rec[0].strip().split(' ')
 
                 # Construct the hit object from the shared fields
                 hit = { 'accession' : acc_dsc[0],
                         'desc' : acc_dsc[1],
-                        'num' : int(rec[1]),
-                        'score' : int(rec[2]),
-                        'expected' : int(rec[3]),
-                        'slen' : int(rec[4]),
-                        'qcov' : float(rec[5]),
-                        'scov' : float(rec[6]),
-                        'depth' : float(rec[7]),
-                        'tot_qcov' : float(rec[8]),
-                        'tot_scov' : float(rec[9]),
-                        'tot_depth' : float(rec[10]),
-                        'q_value' : float(rec[11]),
-                        'p_value' : float(rec[12]) }
+                        'score' : int(rec[1]),
+                        'expected' : int(rec[2]),
+                        'slen' : int(rec[3]),
+                        'sident' : float(rec[4]),
+                        'scov' : float(rec[5]),
+                        'qident' : float(rec[6]),
+                        'qcov' : float(rec[7]),
+                        'depth' : float(rec[8]),
+                        'q_value' : float(rec[9]),
+                        'p_value' : float(rec[10]) }
 
                 # Add the taxonomy if we have it
                 if have_tax:
-                    #hit['ass_acc'] = rec[0]
-                    hit['strain_taxid'] = int(rec[15])
-                    hit['lineage'] = [s.strip() for s in rec[16].split(';')]
-                    hit['taxid'] = int(rec[17])
-                    hit['species'] = rec[18].strip()
+                    hit['strain_taxid'] = int(rec[13])
+                    hit['lineage'] = [s.strip() for s in rec[14].split(';')]
+                    hit['taxid'] = int(rec[15])
+                    hit['species'] = rec[16].strip()
 
                 # Append to the list of hits
                 hits.append(hit)

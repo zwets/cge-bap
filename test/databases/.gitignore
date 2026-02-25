@@ -1,3 +1,2 @@
 *.name
 *.b
-!/test/databases/kmerfinder/*.b

@@ -20,7 +20,7 @@ from .shims.GetReference import GetReferenceShim
 from .shims.GFAConnector import GFAConnectorShim
 from .shims.Flye import FlyeShim
 from .shims.KCST import KCSTShim
-from .shims.KmerFinder import KmerFinderShim
+from .shims.SpeciesFinder import SpeciesFinderShim
 from .shims.MLSTFinder import MLSTFinderShim
 from .shims.PlasmidFinder import PlasmidFinderShim
 from .shims.pMLST import pMLSTShim
@@ -38,7 +38,7 @@ SERVICES = {
     Services.GFACONNECTOR:      GFAConnectorShim(),
     Services.KCST:              KCSTShim(),
     Services.MLSTFINDER:        MLSTFinderShim(),
-    Services.KMERFINDER:        KmerFinderShim(),
+    Services.SPECIESFINDER:        SpeciesFinderShim(),
     Services.GETREFERENCE:      GetReferenceShim(),
     Services.RESFINDER:         ResFinderShim(),
     Services.POINTFINDER:       PointFinderShim(),
