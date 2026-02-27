@@ -113,7 +113,7 @@ For an overview of available parameters, use `--help`:
 
 Call any of the backend services directly, not involving the BAP:
 
-    bap-container-run kmerfinder --help
+    bap-container-run speciesfinder --help
     bap-container-run SKESA --help
 
 Run a terminal shell in the container:
@@ -215,15 +215,15 @@ Clone the CGE database repositories:
 You now have databases for all services except SpeciesFinder and cgMLST.  To
 download these (or a subset), follow the instructions in the repositories.
 
-    cd "$BAP_DB_DIR/kmerfinder"
+    cd "$BAP_DB_DIR/speciesfinder"
     less README.md   # has instructions on download and installation
 
 Run tests against the real databases (ignore failure "does not match expected
 output" as there may have been additions to the CGE databases):
 
     # With BAP_DB_DIR pointing at the installed databases
-    test/test-04-fa-live.sh
-    test/test-05-fq-live.sh
+    test/test-10-fa-live.sh
+    test/test-11-fq-live.sh
 
 ### Installation - Final Touches
 
