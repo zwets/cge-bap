@@ -13,7 +13,7 @@ and/or contigs, and produces the following:
 
  * Genome assembly (optional) (SKESA, Flye)
  * Basic QC metrics over reads a/o contigs (fastq-stats, uf-stats)
- * Species identification (KmerFinder, KCST)
+ * Species identification (SpeciesFinder, KCST)
  * MLST (KCST, MLSTFinder)
  * Resistance profiling (ResFinder, PointFinder, DisinfFinder)
  * Plasmid detection and typing (PlasmidFinder, pMLST)
@@ -127,10 +127,31 @@ The BAP was developed to run on a moderately high-end Linux workstation
 (see [history](#history-and-credits) below).  It is most easily installed
 as a Podman, Singularity or Docker image.
 
-The installation has two major steps: building the image, and downloading
-the databases.
+The installation has two major steps: downloading or building the image,
+and downloading the databases.
 
-### Installation - Building the Image
+### Installation - Download the image
+
+The latest release may be available as a prebuilt image in the GitHub
+Container Registry.  You can then install through:
+
+    # A 'latest' is always present, but better use specific version
+    VERSION=latest
+
+    podman pull ghcr.io/zwets/cge-bap:$VERSION
+    docker pull ghcr.io/zwets/cge-bap:$VERSION
+    singularity pull docker://ghcr.io/zwets/cge-bap:$VERSION
+
+With podman or docker it is convenient to give the image a local tag
+
+    podman tag ghcr.io/zwets/cge-bap:$VERSION cge-bap:$VERSION
+
+This produces the tag `localhost/cge-bap:$VERSION` which is used by
+default by the `bin/run-bap-container` script.
+
+### Installation - Build the Image
+
+Alternatively you can build the image locally.
 
 Clone and enter this repository
 
@@ -144,9 +165,10 @@ Download the backend services
 Build the `cge-bap` image
 
     ./build.sh
-
     # Or manually do what build.sh does:
     #podman build -t localhost/cge-bap "." | tee build.log
+
+### Installation - Test the Image
 
 Smoke test the container
 
@@ -176,9 +198,9 @@ for tests 02 and 03 is not representative.)
 In the previous step we tested against the miniature test databases that
 come with this repository.  In this step we install the real databases.
 
-> NOTE: The download can take a _lot_ of time.  The KmerFinder and cgMLST
-> databases in particular are very large (~100GB).  It is possible to run
-> the BAP without these, but with loss of functionality.
+> NOTE: The download can take a _lot_ of time.  The SpeciesFinder (formerly
+> KmerFinder) and cgMLST databases in particular are very large (~100GB).
+> It is possible to run the BAP without these, but with loss of functionality.
 
 Pick a location for the databases:
 
@@ -190,7 +212,7 @@ Clone the CGE database repositories:
     mkdir -p "$BAP_DB_DIR"
     scripts/clone-databases.sh "$BAP_DB_DIR"
 
-You now have databases for all services except KmerFinder and cgMLST.  To
+You now have databases for all services except SpeciesFinder and cgMLST.  To
 download these (or a subset), follow the instructions in the repositories.
 
     cd "$BAP_DB_DIR/kmerfinder"
@@ -216,7 +238,7 @@ Once this is done (you may need to logout and login), `BAP --help` should work.
 
 ## Development / Upgrades
 
-To **upgrade to the latest BAP release**:
+To **upgrade to the latest BAP release** when building locally:
 
         git pull                # pulls the current edge
         git describe            # check that it is not a WIP commit
