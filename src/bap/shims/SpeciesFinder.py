@@ -3,7 +3,7 @@
 # bap.shims.SpeciesFinder - service shim to the SpeciesFinder backend
 #
 
-import os, logging
+import os, glob, logging
 from pico.workflow.executor import Task
 from pico.jobcontrol.job import JobSpec, Job
 from .base import ServiceExecution, UserException
@@ -144,50 +144,21 @@ class SpeciesFinderExecution(ServiceExecution):
             self._blackboard.put_closest_reference(hits[0].get('accession'), hits[0].get('desc'))
 
 
-# Returns comma-separated list of available databases in db_dir
-def list_dbs(db_dir):
-    dbs = list()
-    cfg = os.path.join(db_dir, "config")
-    if os.path.isfile(cfg):
-        with open(cfg) as f:
-            for l in f:
-                l = l.strip()
-                if l.startswith('#'): continue
-                r = l.split('\t')
-                if len(r) == 3:
-                    dbs.append(r[0].split('.')[0])
-    return ', '.join(dbs)
-
-
-# Locates database under db_dir, returns (db_path, tax_file)
+# Locates database under db_root, returns (db_path, tax_file)
 # or raises an exception with appriopriate error message
-def find_db(db_dir, name):
+def find_db(db_root, name):
 
-    config = os.path.join(db_dir, 'config')
-    if not os.path.isfile(config):
-        raise UserException('database config not found: %s', config)
+    # Locate the database by checking for a .seq.b file
+    matches = glob.glob(os.path.join(db_root, name, f"{name}*.seq.b"))
+    if not matches:
+        raise UserException("database '%s' not found; databases are: %s", name,
+            ', '.join(map(os.path.dirname, glob.glob(f"{name}/{name}*.seq.b", root_dir = db_root))))
+    db_path = matches[0].replace('.seq.b','')
 
-    # Look up the database in the config
-    with open(config) as f:
-        for l in f:
-            # Lines are {name}[.{kmersuffix}]\t{Description}\t{More}
-            if not l.startswith(name.lower()): continue
-            db_pfx = l.split('\t')[0].strip()
-            db = l.split('.')[0] if '.' in db_pfx else db_pfx
-            path = os.path.join(db_dir, db_pfx)
-            if not os.path.isfile(path + '.seq.b'):
-                # Check in subdirectory just in case
-                path = os.path.join(db_dir, db, db_pfx)
-                if not os.path.isfile(path + '.seq.b'):
-                    raise UserException('invalid database, no seq.b file: %s', db_pfx)
-            # Locate full path to the tax file (which may be absent)
-            tax = os.path.join(os.path.dirname(path), db + ".tax")
-            if not os.path.isfile(tax):  # try with pfx and tax
-                tax = os.path.join(os.path.dirname(path), db_pfx + ".tax")
-                if not os.path.isfile(tax):
-                    tax = None
-            return (path, tax)
+    # Locate the optional tax file
+    tax = db_path + '.tax'
+    if not os.path.isfile(tax):
+        tax = None
 
-    # If we get here, the database was not in the config
-    raise UserException("database '%s' not in config; databases are: %s", name, list_dbs(db_dir))
+    return (db_path, tax)
 
