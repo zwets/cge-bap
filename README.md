@@ -270,10 +270,11 @@ Always **run tests after upgrading**:
 
 ### History
 
-The CGE BAP is currently maintained thanks to funding from the Fleming Fund
-SeqAfrica Project, a UK Aid investment to tackle AMR in LMICs.
+The CGE BAP is currently maintained by Marco van Zwetselaar <io@zwets.it>.
+Between 2023 and 2026, maintenance was funded by the Fleming Fund SeqAfrica
+Project, a UK Aid investment to tackle AMR in LMICs.
 
-The development of the CGE BAP (then called KCRI CGE BAP) previously took
+Prior to that, development of the CGE BAP (then called KCRI CGE BAP) took
 place at the Kilimanjaro Clinical Research Institute, funded by Danish aid
 through DANIDA Fellowship Centre grant DFC12-007DTU.
 
@@ -287,7 +288,7 @@ could be used in the field.  It will still run comfortably on an 8-core,
 
 As the BAP evolved, its workflow logic became unwieldy and was factored into
 a simple generic mechanism (now at <https://github.com/zwets/picoline>),
-and BAP-specifics (workflow definitions and service shims), here in the
+while BAP-specifics (workflow definitions and service shims) moved to the
 `src/bap` package.
 
 ### Citation
@@ -306,8 +307,8 @@ Refer to the individual tools invoked by the BAP for their preferred citations.
 #### Licence
 
 Copyright 2016-2019 Center for Genomic Epidemiology, Technical University of Denmark  
-Copyright 2018-2022 Kilimanjaro Clinical Research Institute, Tanzania  
-Copyright 2023-2024 Marco van Zwetselaar <io@zwets.it>
+Copyright 2018-2022 Kilimanjaro Clinical Research Institute, Moshi, Tanzania  
+Copyright 2023-2026 Marco van Zwetselaar <io@zwets.it>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
