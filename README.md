@@ -14,7 +14,7 @@ and/or contigs, and produces the following:
  * Genome assembly (optional) (SKESA, Flye)
  * Basic QC metrics over reads a/o contigs (fastq-stats, uf-stats)
  * Species identification (SpeciesFinder, KCST)
- * MLST (KCST, MLSTFinder)
+ * MLST (KCST, MLSTFinder) _note: database no longer available_
  * Resistance profiling (ResFinder, PointFinder, DisinfFinder)
  * Plasmid detection and typing (PlasmidFinder, pMLST)
  * Virulence gene finding (VirulenceFinder)
@@ -198,7 +198,8 @@ for tests 02 and 03 is not representative.)
 In the previous step we tested against the miniature test databases that
 come with this repository.  In this step we install the real databases.
 
-> NOTE: The download can take a _lot_ of time.  The SpeciesFinder (formerly
+> **Note**
+> The download can take a _lot_ of time.  The SpeciesFinder (formerly
 > KmerFinder) and cgMLST databases in particular are very large (~100GB).
 > It is possible to run the BAP without these, but with loss of functionality.
 
@@ -208,6 +209,10 @@ Pick a location for the databases:
     BAP_DB_DIR=/data/cge/db   # Path on my machine, replace by yours
 
 Clone the CGE database repositories:
+
+> **Note**
+> The CGE MLST database stopped receiving updates in August 2025 due to
+> licencing constraints on PubMLST data.
 
     mkdir -p "$BAP_DB_DIR"
     scripts/clone-databases.sh "$BAP_DB_DIR"
@@ -270,7 +275,10 @@ Always **run tests after upgrading**:
 
 ### History
 
-The CGE BAP is currently maintained by Marco van Zwetselaar <io@zwets.it>.
+The CGE BAP is currently maintained by Marco van Zwetselaar <mvazw@food.dtu.dk>,
+Research Group for Genomic Epidemiology at the National Food Institute,
+Danish Technical University (DTU).
+
 Between 2023 and 2026, maintenance was funded by the Fleming Fund SeqAfrica
 Project, a UK Aid investment to tackle AMR in LMICs.
 
@@ -309,6 +317,7 @@ Refer to the individual tools invoked by the BAP for their preferred citations.
 Copyright 2016-2019 Center for Genomic Epidemiology, Technical University of Denmark  
 Copyright 2018-2022 Kilimanjaro Clinical Research Institute, Moshi, Tanzania  
 Copyright 2023-2026 Marco van Zwetselaar <io@zwets.it>
+Copyright 2026 Marco van Zwetselaar <mvazw@food.dtu.dk>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
